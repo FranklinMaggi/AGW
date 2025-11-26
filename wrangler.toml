@@ -1,0 +1,25 @@
+name = "agw"
+main = "workers/api.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "AGW_USERS"
+id = "532cf4782eb64b129f9493c787939222"
+preview_id = "499129c872bb4654a337592974e0da56"
+
+[vars]
+ADMIN_TOKEN = "agw-secret-admin-token"
+
+[env.dev]
+name = "agw-dev"
+compatibility_date = "2024-11-22"
+
+[[env.dev.kv_namespaces]]
+binding = "AGW_USERS"
+preview_id = "499129c872bb4654a337592974e0da56"
+
+[env.dev.vars]
+ADMIN_TOKEN = "agw-secret-admin-token"
+
+[env.production]
+vars = { PUBLIC_API_URL = "https://agw-api.webonday.it", PUBLIC_APP_URL = "https://agw.webonday.it" }

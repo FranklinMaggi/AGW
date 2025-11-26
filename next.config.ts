@@ -1,7 +1,14 @@
-import type { NextConfig } from "next";
+const nextConfig = {
+  experimental: {
+    webpackBuildWorker: false,
+    
+  },
 
-const nextConfig: NextConfig = {
-  /* config options here */
+  webpack: (config) => {
+    return config;
+  },
+
+  turbopack: {},
 };
 
 export default nextConfig;

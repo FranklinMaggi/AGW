@@ -1,0 +1,112 @@
+/* Tema Admin AGW */
+
+/* Color Palette */
+:root {
+    --admin-bg: #0e0f11;            /* Graphite dark (non nero assoluto) */
+    --admin-surface: #1a1c1f;       /* Carbon surface */
+    --admin-surface-light: #23262a; /* Layer superiore */
+    --admin-border: #2f3237;
+    --admin-text: #e6e6e6;          /* Testo principale */
+    --admin-text-muted: #a0a4a8;
+    --admin-gold: #f5c542;          /* Oro AGW più morbido */
+  }
+  table td, table th {
+    color: var(--admin-text);
+  }
+  
+  table tr:hover td {
+    background-color: var(--admin-surface-light);
+  }
+  /* Global Admin Reset */
+  body.admin-theme {
+    background-color: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: ui-sans-serif, system-ui;
+  }
+  
+  /* Pannelli */
+  .admin-card {
+    background-color: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+  
+  /* Titoli */
+  .admin-title {
+    color: var(--admin-gold);
+    font-weight: 700;
+  }
+  
+  /* Testo secondario */
+  .admin-muted {
+    color: var(--admin-text-muted);
+  }
+  
+  /* Bottoni base */
+  .admin-btn {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .admin-btn-gold {
+    background: var(--admin-gold);
+    color: black;
+  }
+  
+  .admin-btn-danger {
+    background: #c92a2a;
+    color: white;
+  }
+  
+  .admin-btn-blue {
+    background: #1c7ed6;
+    color: white;
+  }
+  
+  /* Campo input */
+  .admin-input {
+    background-color: var(--admin-surface-light);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    padding: 0.6rem;
+    border-radius: 8px;
+    width: 100%;
+  }
+  
+  /* Sidebar */
+  .admin-sidebar {
+    background-color: var(--admin-surface);
+    border-right: 1px solid var(--admin-border);
+  }
+  
+  .admin-sidebar a {
+    color: var(--admin-text-muted);
+  }
+  
+  .admin-sidebar a:hover {
+    color: var(--admin-text);
+  }
+  
+  /* Topbar */
+  .admin-topbar {
+    background-color: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+  }
+  
+  /* Stat Cards */
+  .admin-stat {
+    background-color: var(--admin-surface-light);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  
+  .admin-stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--admin-gold);
+  }
+  

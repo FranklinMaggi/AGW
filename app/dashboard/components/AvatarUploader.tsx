@@ -12,10 +12,10 @@ export default function AvatarUploader({ user }: { user: any }) {
     const base64 = await toBase64(file);
     setPreview(base64);
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/upload-avatar`, {
+    await fetch("/api/user/update-avatar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatar: base64 }),
+      body: JSON.stringify({ userId: user.id, avatarBase64: base64 }),
     });
 
     alert("Avatar aggiornato");

@@ -10,7 +10,8 @@ export default function SecurityPanel() {
     const res = await fetch("/api/user/change-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oldPass, newPass }),
+      body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+
     });
 
     if (!res.ok) {

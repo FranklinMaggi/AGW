@@ -13,19 +13,22 @@ export async function loginUser(env, body) {
   }
 
   const user = await findUserByEmail(env, email);
+
   if (!user) {
+    // 404 → Next /auth/login lo traduce in EMAIL_NOT_FOUND
     return {
       ok: false,
       status: 404,
-      error: "User not found"
+      error: "EMAIL_NOT_FOUND"
     };
   }
 
   if (user.password !== password) {
+    // 401 → Next /auth/login lo traduce in WRONG_PASSWORD
     return {
       ok: false,
       status: 401,
-      error: "Invalid password"
+      error: "WRONG_PASSWORD"
     };
   }
 
@@ -33,7 +36,7 @@ export async function loginUser(env, body) {
     return {
       ok: false,
       status: 403,
-      error: "Account suspended"
+      error: "ACCOUNT_SUSPENDED"
     };
   }
 

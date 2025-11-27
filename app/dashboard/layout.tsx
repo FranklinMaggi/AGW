@@ -13,7 +13,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const res = await fetch("/auth/me", { cache: "no-store" });
       const data = await res.json();
       if (!data.ok) window.location.href = "/login";
       setUser(data.user);

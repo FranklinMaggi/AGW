@@ -11,7 +11,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, { cache: "no-store" });
+      const res = await fetch("/auth/me", { cache: "no-store" });
       const data = await res.json();
       if (!data.ok) window.location.href = "/login";
       setUser(data.user);

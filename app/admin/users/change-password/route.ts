@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
-  const { oldPass, newPass } = await req.json();
+  const { oldPassword, newPassword } = await req.json();
 
-  if (!oldPass || !newPass) {
+
+  if (!oldPassword || !newPassword) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
@@ -27,8 +28,8 @@ export async function POST(req: Request) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userId,
-      oldPassword: oldPass,
-      newPassword: newPass,
+      oldPassword,
+      newPassword,
     }),
   });
 

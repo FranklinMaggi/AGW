@@ -1,27 +1,51 @@
+####################################
+# BASE CONFIG (usata da tutti gli env)
+####################################
 name = "agw"
 main = "workers/api.js"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2024-11-22"
 
-# Collegamento dominio al worker
 routes = [
   { pattern = "agw-api.webonday.it", custom_domain = true }
 ]
 
-# KV namespaces
+####################################
+# SHARED KV + VARS (ereditarie)
+####################################
+# KV in comune (stessa namespace per tutti)
 [[kv_namespaces]]
 binding = "AGW_USERS"
 id = "532cf4782eb64b129f9493c787939222"
 preview_id = "499129c872bb4654a337592974e0da56"
 
-# Variabili globali
+# Variabili condivise
 [vars]
 ADMIN_TOKEN = "agw-secret-admin-token"
 
-# Ambiente DEV
-[env.dev]
-name = "agw-dev"
+
+####################################
+# ENV: PRODUCTION
+####################################
+[env.production]
+name = "agw-production"
 compatibility_date = "2024-11-22"
+
+# KV per ambiente production (IDENTICO come richiesto)
+[[env.production.kv_namespaces]]
+binding = "AGW_USERS"
+id = "532cf4782eb64b129f9493c787939222"
+
+# Vars aggiuntive ONLY production
+[env.production.vars]
+ADMIN_TOKEN = "agw-secret-admin-token"
+PUBLIC_API_URL = "https://agw-api.webonday.it"
+PUBLIC_APP_URL = "https://agw.webonday.it"
+
+
+####################################
+# ENV: DEV
+####################################
+[env.dev]
 
 [[env.dev.kv_namespaces]]
 binding = "AGW_USERS"
@@ -29,8 +53,5 @@ preview_id = "499129c872bb4654a337592974e0da56"
 
 [env.dev.vars]
 ADMIN_TOKEN = "agw-secret-admin-token"
-
-# Ambiente PRODUCTION
-[env.production]
-PUBLIC_API_URL = "https://agw-api.webonday.it"
-PUBLIC_APP_URL = "https://agw.webonday.it"
+PUBLIC_API_URL = "http://127.0.0.1:8787"
+PUBLIC_APP_URL = "http://localhost:3000"

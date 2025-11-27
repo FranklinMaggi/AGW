@@ -18,7 +18,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const data = await backendRes.json();
+    let data;
+try {
+  data = await backendRes.json();
+} catch {
+  return NextResponse.json(
+    { error: "INTERNAL_BACKEND_ERROR" },
+    { status: 500 }
+  );
+}
 
     // Password errata
     if (!data.ok) {

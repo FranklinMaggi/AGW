@@ -9,7 +9,7 @@ export default function ResetPasswordPage({ searchParams }: any) {
     e.preventDefault();
     const pass = e.target.password.value;
 
-    const res = await fetch("/api/auth/do-reset", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/do-reset`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, new_password: pass })

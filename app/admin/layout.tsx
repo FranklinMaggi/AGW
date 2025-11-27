@@ -2,11 +2,20 @@
 
 import "../globals.css";
 import "./admin.css";
+import { Suspense } from "react";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminTopbar from "./components/AdminTopbar";
 import { useSearchParams } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<p className="admin-muted p-6">Caricamento layout...</p>}>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </Suspense>
+  );
+}
+
+  function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const params = useSearchParams();
   const token = params.get("token");
 

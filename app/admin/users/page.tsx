@@ -1,10 +1,19 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import UserTable from "./UserTable";
 
-export default function AdminUsers() {
+export default function AdminUsersWrapper() {
+  return (
+    <Suspense fallback={<p className="admin-muted">Caricamento utenti...</p>}>
+      <AdminUsers />
+    </Suspense>
+  );
+}
+
+function AdminUsers() {
   const params = useSearchParams();
   const token = params.get("token");
 
@@ -22,13 +31,12 @@ export default function AdminUsers() {
         headers: { "x-admin-token": token ?? "" }
       }
     );
-  
+
     const data = await res.json();
     if (!data.error) {
       setUserList(data.users);
     }
   }
-  
 
   useEffect(() => {
     if (token) loadUserList();
@@ -40,7 +48,7 @@ export default function AdminUsers() {
     setMsg("");
 
     const res = await fetch(
-     `${process.env.NEXT_PUBLIC_API_URL}/api/user/get`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/user/get`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,38 +68,31 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       <h1 className="admin-title text-2xl font-bold">Gestione Utenti</h1>
-    
+
       <button
-  onClick={async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/create`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    });
+        onClick={async () => {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
 
-    const data = await res.json();
+          const data = await res.json();
 
-    if (data.error) {
-      alert("Error creating user: " + data.error);
-      return;
-    }
+          if (data.error) {
+            alert("Error creating user: " + data.error);
+            return;
+          }
 
-    // Redirect immediato alla pagina di editing
-    window.location.href = `/admin/users/${data.id}/edit?token=${token}`;
-  }}
-  className="admin-btn admin-btn-gold"
->
-  + Create New User
-</button>
+          window.location.href = `/admin/users/${data.id}/edit?token=${token}`;
+        }}
+        className="admin-btn admin-btn-gold"
+      >
+        + Create New User
+      </button>
 
+      <UserTable users={userList} token={token} />
 
-      {/* LISTA UTENTI */}
-      <UserTable
-        users={userList}
-        token={token}
-      />
-
-      {/* CERCA MANUALE */}
       <div className="admin-card space-y-4">
         <p className="admin-muted">Cerca utente per ID:</p>
 

@@ -1,13 +1,9 @@
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   experimental: {
-    webpackBuildWorker: false,
-    
+    optimizeCss: true,
   },
-
-  webpack: (config) => {
-    return config;
-  },
-
   turbopack: {},
 };
 

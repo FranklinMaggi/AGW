@@ -1,6 +1,21 @@
+//admin/analytics/page.tsx
 "use client";
 
-export default function AdminAnalytics() {
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
+export default function AnalyticsWrapper() {
+  return (
+    <Suspense fallback={<p className="admin-muted p-6">Caricamento...</p>}>
+      <AnalyticsPage />
+    </Suspense>
+  );
+}
+
+function AnalyticsPage() {
+  // Anche se non lo usi, serve per evitare hydration mismatch
+  const params = useSearchParams();
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl admin-title">Analitiche Avanzate</h1>

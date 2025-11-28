@@ -1,7 +1,7 @@
 "use client";
 
 import Sidebar from "./components/Sidebar";
-import Topbar from "./components/TopBar";
+import Topbar from "./components/Topbar";
 import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
@@ -13,10 +13,10 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/auth/me", { cache: "no-store" });
-      const data = await res.json();
-      if (!data.ok) window.location.href = "/login";
-      setUser(data.user);
+        const res = await fetch("/api/user/get", { method: "POST" });
+        const data = await res.json();
+        if (!data.ok) window.location.href = "/login";
+        setUser(data.user);
     }
     load();
   }, []);

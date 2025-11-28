@@ -1,0 +1,4304 @@
+francescomaggi@MacBook-Pro agw-app % showall
+├─ app/admin/analytics/page.tsx
+```
+//admin/analytics/page.tsx
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
+export default function AnalyticsWrapper() {
+  return (
+    <Suspense fallback={<p className="admin-muted p-6">Caricamento...</p>}>
+      <AnalyticsPage />
+    </Suspense>
+  );
+}
+
+function AnalyticsPage() {
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl admin-title">Analitiche Avanzate</h1>
+
+      <div className="admin-card space-y-3">
+        <p className="admin-muted">Statistiche e trend della piattaforma:</p>
+
+        <ul className="admin-muted list-disc pl-4">
+          <li>Crescita utenti</li>
+          <li>Retention settimanale / mensile</li>
+          <li>Day acquistati nel tempo</li>
+          <li>Missioni completate</li>
+          <li>Andamento KRM</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/admin/components/AdminSidebar.tsx
+```
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  BadgeCheck,
+  Target,
+  BarChart3,
+  Settings,
+} from "lucide-react";
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+
+  const items = [
+    { label: "Overview", path: "/admin", icon: LayoutDashboard },
+    { label: "Users", path: "/admin/users", icon: Users },
+    { label: "Subscriptions", path: "/admin/subscriptions", icon: BadgeCheck },
+    { label: "Missions", path: "/admin/missions", icon: Target },
+    { label: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+    { label: "System", path: "/admin/system", icon: Settings },
+  ];
+
+  return (
+    <aside className="w-64 admin-sidebar min-h-screen p-4 space-y-6">
+      <h2 className="text-2xl font-bold text-[hsl(var(--agw-gold))]">
+        AGW Admin
+      </h2>
+
+      <nav className="space-y-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.path;
+
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`flex items-center gap-3 px-3 py-2 rounded-md transition
+                ${
+                  active
+                    ? "bg-[hsl(var(--agw-gold))] text-black font-semibold"
+                    : "text-neutral-300 hover:text-white hover:bg-neutral-800"
+                }`}
+            >
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}
+```
+
+├─ app/admin/components/AdminTopbar.tsx
+```
+"use client";
+
+import { ShieldCheck, Wifi, Database, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export default function AdminTopbar() {
+  const router = useRouter();
+
+  function logout() {
+    router.push("/admin/logout");
+  }
+
+  return (
+    <header className="admin-topbar w-full px-6 py-4 flex justify-between items-center shadow-sm">
+      {/* LEFT */}
+      <div className="flex items-center gap-3">
+        <ShieldCheck size={20} className="text-[hsl(var(--agw-gold))]" />
+        <h1 className="text-lg font-semibold text-[hsl(var(--agw-gold))] tracking-wide">
+          AGW Admin Panel
+        </h1>
+
+        <span className="px-2 py-1 text-xs rounded-md bg-[hsl(var(--agw-gold))] text-black ml-2">
+          ADMIN
+        </span>
+      </div>
+
+      {/* RIGHT */}
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-1 text-neutral-400 text-sm">
+          <Wifi size={16} className="text-green-400" />
+          Online
+        </div>
+
+        <div className="flex items-center gap-1 text-neutral-400 text-sm">
+          <Database size={16} className="text-blue-400" />
+          KV OK
+        </div>
+
+        <button
+          onClick={logout}
+          className="flex items-center gap-2 px-3 py-1 rounded-md admin-btn admin-btn-danger hover:opacity-90"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
+      </div>
+    </header>
+  );
+}
+```
+
+├─ app/admin/layout.tsx
+```
+"use client";
+
+import type { ReactNode } from "react";
+import AdminSidebar from "./components/AdminSidebar";
+import AdminTopbar from "./components/AdminTopbar";
+
+interface AdminLayoutProps {
+  children: ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  return (
+    <div className="admin-theme min-h-screen flex">
+      <AdminSidebar />
+
+      <div className="flex flex-col flex-1 min-h-screen">
+        <AdminTopbar />
+
+        <main className="p-6 flex-1">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/admin/login/page.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function AdminLoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Errore login");
+      return;
+    }
+
+    window.location.href = "/admin";
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-black">
+      <form
+        onSubmit={handleLogin}
+        className="bg-neutral-900 p-8 rounded-xl shadow-xl w-full max-w-md space-y-4"
+      >
+        <h1 className="text-2xl text-[hsl(var(--agw-gold))] font-bold text-center">
+          Admin Login
+        </h1>
+
+        {error && (
+          <p className="text-red-500 text-center">{error}</p>
+        )}
+
+        <input
+          className="admin-input w-full"
+          type="email"
+          placeholder="Email admin"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          className="admin-input w-full"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button
+          type="submit"
+          className="admin-btn admin-btn-gold w-full"
+        >
+          Entra
+        </button>
+      </form>
+    </main>
+  );
+}
+```
+
+├─ app/admin/missions/page.tsx
+```
+"use client";
+
+export default function AdminMissions() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl admin-title">Gestione Missioni</h1>
+
+      <div className="admin-card space-y-3">
+        <p className="admin-muted">Controlla e gestisci le missioni globali:</p>
+        <ul className="admin-muted list-disc pl-4">
+          <li>Lista missioni</li>
+          <li>Creazione / Modifica / Rimozione</li>
+          <li>Missioni attive</li>
+          <li>Completamenti sospetti</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/admin/page.tsx
+```
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function AdminHome() {
+  const [valid, setValid] = useState<boolean | null>(null);
+  const [overview, setOverview] = useState<any>(null);
+
+  // Recupera sessione admin dal browser
+  const sessionId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("agw_admin_session")
+      : null;
+
+  async function validate() {
+    if (!sessionId) {
+      setValid(false);
+      return;
+    }
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/me`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId })
+    });
+
+    const data = await res.json();
+
+    setValid(data.ok === true);
+
+    if (data.ok) {
+      await loadOverview();
+    }
+  }
+
+  async function loadOverview() {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/overview`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId })
+    });
+
+    const data = await res.json();
+    setOverview(data);
+  }
+
+  useEffect(() => {
+    validate();
+  }, []);
+
+  if (valid === null)
+    return <p className="admin-muted p-6">Verifica in corso...</p>;
+
+  if (!valid)
+    return (
+      <div className="admin-card p-6">
+        <p className="admin-btn-danger p-2 rounded-md text-center">
+          Accesso negato
+        </p>
+      </div>
+    );
+
+  if (!overview)
+    return <p className="admin-muted p-6">Caricamento dati...</p>;
+
+  return (
+    <div className="space-y-8">
+      <h1 className="text-3xl admin-title">Admin Dashboard AGW</h1>
+
+      <div className="admin-card space-y-6">
+        <h2 className="text-xl admin-title">Panoramica Sistema</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Stat label="Utenti totali" value={overview.totalUsers} />
+          <Stat label="Abbonamenti attivi" value={overview.activeSubscriptions} />
+          <Stat label="Bonus attivi" value={overview.activeBonuses} />
+          <Stat label="KRM totali generati" value={overview.totalKRM} />
+          <Stat label="Day acquistati" value={overview.totalDay} />
+          <Stat label="Missioni completate" value={overview.totalMissions} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: any) {
+  return (
+    <div className="admin-stat space-y-1">
+      <p className="admin-muted">{label}</p>
+      <p className="admin-stat-value">{value}</p>
+    </div>
+  );
+}
+```
+
+├─ app/admin/src/types/Users.ts
+```typescript
+export interface User {
+    id: string;
+    index: number;
+  
+    nickname: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+    phone: string | null;
+  
+    profile_image: string | null;
+    avatar_ai: string | null;
+  
+    mailing: {
+      primary: string;
+      secondary: string | null;
+      verified: boolean;
+      verification_sent_at: number | null;
+      verified_at: number | null;
+      preferences: {
+        newsletter: boolean;
+        missions: boolean;
+        rewards: boolean;
+        billing: boolean;
+        security: boolean;
+      };
+      status: {
+        bounced: boolean;
+        soft_bounce_count: number;
+        hard_bounce: boolean;
+        unsubscribe: boolean;
+        unsubscribe_at: number | null;
+      };
+      log: any[];
+    };
+  
+    personal: {
+      birthdate: string | null;
+      weight: number | null;
+      height: number | null;
+      gender: string | null;
+      job: string | null;
+    };
+  
+    status: {
+      suspended: boolean;
+      createdAt: number;
+    };
+  
+    stats: {
+      level_total: number;
+      level_year: number;
+      rank_month: number;
+      motivation_week: number;
+      assessment_day: number;
+  
+      krm_total: number;
+      krm_year: number;
+      krm_month: number;
+      krm_week: number;
+      krm_day: number;
+  
+      missions_completed_total: number;
+      missions_completed_month: number;
+      missions_completed_week: number;
+      missions_completed_today: number;
+    };
+  
+    discipline: {
+      daily_completed: number;
+      daily_goal: number;
+      weekly_completed: number;
+      weekly_goal: number;
+    };
+  
+    subscription: {
+      type: string | null;
+      renew_every: number;
+      last_payment_at: number | null;
+      payment_status: "green" | "orange" | "red" | null;
+      expires_at: number | null;
+    };
+  
+    bonus: {
+      award: string | null;
+      expiresAt: number | null;
+      days?: number;
+    } | null;
+  
+    missions: {
+      status: "approved" | "pending" | "rejected";
+      [k: string]: any;
+    }[];
+  
+    delta7?: number;
+  }
+  ```
+
+├─ app/admin/subscriptions/page.tsx
+```
+"use client";
+
+export default function AdminSubscriptions() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl admin-title">Gestione Abbonamenti</h1>
+
+      <div className="admin-card space-y-3">
+        <p className="admin-muted">Qui potrai vedere e gestire:</p>
+        <ul className="admin-muted list-disc pl-4">
+          <li>Abbonamenti attivi</li>
+          <li>Data scadenza</li>
+          <li>Rinnovi manuali</li>
+          <li>Anomalie abbonamenti</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/admin/system/page.tsx
+```
+"use client";
+
+export default function AdminSystem() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl admin-title">Controllo Sistema</h1>
+
+      <div className="admin-card space-y-3">
+        <p className="admin-muted">Strumenti e diagnostica:</p>
+        <ul className="admin-muted list-disc pl-4">
+          <li>Test API</li>
+          <li>Stato KV</li>
+          <li>Logs Worker</li>
+          <li>Reset Bonus settimanale</li>
+          <li>Health-check</li>
+          <li>Sicurezza</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/admin/users/UserTable.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function UserTable({ users }: { users: any[] }) {
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  const filtered = safeUsers.filter((u) =>
+    JSON.stringify(u).toLowerCase().includes(search.toLowerCase())
+  );
+
+  function toggle(id: string) {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Eliminare ${selected.length} utenti?`)) return;
+
+    for (const id of selected) {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, field: "delete" })
+      });
+    }
+
+    alert("Utenti eliminati");
+    window.location.reload();
+  }
+
+  return (
+    <div className="admin-card p-4 space-y-4 overflow-auto">
+      <input
+        className="admin-input"
+        placeholder="Cerca..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {selected.length > 0 && (
+        <button
+          onClick={handleBulkDelete}
+          className="admin-btn admin-btn-danger"
+        >
+          Elimina selezionati ({selected.length})
+        </button>
+      )}
+
+      <div className="overflow-auto">
+        <table className="min-w-full text-sm text-left border-collapse">
+          <thead>
+            <tr>
+              <Th></Th>
+              <Th>Edit</Th>
+              <Th>Delete</Th>
+              <Th>ID</Th>
+              <Th>Email</Th>
+              <Th>Name</Th>
+              <Th>Status</Th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filtered.map((user) => (
+              <tr key={user.id}>
+                <Td>
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(user.id)}
+                    onChange={() => toggle(user.id)}
+                  />
+                </Td>
+
+                <Td>
+                  <a
+                    href={`/admin/users/${user.id}/edit`}
+                    className="admin-btn admin-btn-blue text-xs"
+                  >
+                    Edit
+                  </a>
+                </Td>
+
+                <Td>
+                  <button
+                    className="admin-btn admin-btn-danger text-xs"
+                    onClick={async () => {
+                      if (!confirm(`Eliminare ${user.email}?`)) return;
+
+                      await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            id: user.id,
+                            field: "delete"
+                          })
+                        }
+                      );
+
+                      alert("Utente eliminato");
+                      window.location.reload();
+                    }}
+                  >
+                    Delete
+                  </button>
+                </Td>
+
+                <Td>{user.id}</Td>
+                <Td>{user.email}</Td>
+                <Td>{user.firstname} {user.lastname}</Td>
+                <Td>{user.status?.suspended ? "Sospeso" : "Attivo"}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Th({ children }: any) {
+  return (
+    <th className="px-3 py-2 font-semibold text-[var(--admin-gold)] whitespace-nowrap">
+      {children}
+    </th>
+  );
+}
+
+function Td({ children }: any) {
+  return <td className="px-3 py-2 whitespace-nowrap">{children}</td>;
+}
+```
+
+├─ app/admin/users/[id]/edit/page.tsx
+```
+"use client";
+import type { User } from "app/admin/src/types/Users";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
+/* ============================================================================
+   PAGE: ADMIN — EDIT USER
+   Allineato completamente al backend Workers.
+============================================================================ */
+
+export default function EditUser() {
+  const { id } = useParams();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  // ==========================================================
+  // LOAD USER FROM BFF
+  // ==========================================================
+  async function loadUser() {
+    setLoading(true);
+
+    const res = await fetch(`/api/admin/users`, { cache: "no-store" });
+    const data = await res.json();
+
+    if (!data.ok) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    const found = data.users.find((u: any) => u.id === id);
+    setUser(found || null);
+    setLoading(false);
+  }
+
+  // ==========================================================
+  // GENERIC FIELD UPDATE (supports nested fields)
+  // ==========================================================
+  async function update(field: string, value: any) {
+    if (!user) return;
+
+    setSaving(true);
+    setMsg("");
+
+    const res = await fetch(`/api/admin/user-update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        field,
+        value,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      setMsg("❌ " + (data.error || "Errore salvataggio"));
+      setSaving(false);
+      return;
+    }
+
+    setUser(data.user);
+    setMsg("✔ Salvato");
+    setSaving(false);
+  }
+
+  // ==========================================================
+  // RESET PASSWORD
+  // ==========================================================
+  async function resetPassword() {
+    const newPass = prompt("Inserisci nuova password:");
+    if (!newPass || !user) return;
+
+    const res = await fetch(`/api/user/update-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        oldPassword: "", // bypassato dall'admin
+        newPassword: newPass,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.ok) alert("Password aggiornata");
+    else alert("Errore durante l'aggiornamento");
+  }
+
+  // ==========================================================
+  // DELETE USER
+  // ==========================================================
+  async function deleteUser() {
+    if (!user) return;
+    if (!confirm("Confermi eliminazione DEFINITIVA?")) return;
+
+    const res = await fetch(`/api/admin/user-update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        field: "delete",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.deleted) {
+      alert("Utente eliminato");
+      window.location.href = "/admin/users";
+    } else {
+      alert("Errore eliminazione");
+    }
+  }
+
+  // ==========================================================
+  // LOAD ON MOUNT
+  // ==========================================================
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  // ==========================================================
+  // RENDERING
+  // ==========================================================
+  if (loading) return <p className="p-6 admin-muted">Loading...</p>;
+  if (!user) return <p className="p-6 text-red-400">User not found</p>;
+
+  return (
+    <div className="space-y-8">
+      <h1 className="admin-title text-3xl font-bold">
+        Editing User #{user.index} — {user.nickname}
+      </h1>
+
+      <p className="admin-muted">{msg}</p>
+
+      {/* ======================================================
+         BASIC INFO
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Profilo</h2>
+
+        <Field label="Email" value={user.email} update={(v)=>update("email", v)} />
+        <Field label="Firstname" value={user.firstname} update={(v)=>update("firstname", v)} />
+        <Field label="Lastname" value={user.lastname} update={(v)=>update("lastname", v)} />
+      </section>
+
+      {/* ======================================================
+         STATS
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Stats</h2>
+
+        <Field
+          label="KRM Totale"
+          value={user.stats?.krm_total}
+          update={(v)=>update("stats.krm_total", Number(v))}
+        />
+
+        <Field
+          label="Livello"
+          value={user.stats?.level_total}
+          update={(v)=>update("stats.level_total", Number(v))}
+        />
+      </section>
+
+      {/* ======================================================
+         STATUS
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Status</h2>
+
+        <select
+          className="admin-input"
+          defaultValue={user.status?.suspended ? "suspended" : "active"}
+          onChange={(e) => update("status.suspended", e.target.value === "suspended")}
+        >
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </section>
+
+      {/* RESET PASSWORD */}
+      <div className="admin-card p-6">
+        <button className="admin-btn admin-btn-blue" onClick={resetPassword}>
+          Reset Password
+        </button>
+      </div>
+
+      {/* DELETE USER */}
+      <div className="admin-card p-6">
+        <button className="admin-btn admin-btn-danger" onClick={deleteUser}>
+          Delete User
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   FIELD COMPONENT
+============================================================================ */
+type FieldProps<T> = {
+  label: string;
+  value: T;
+  update: (v: T) => void;
+};
+
+function Field<T>({ label, value, update }: FieldProps<T>) {
+  return (
+    <div className="space-y-2">
+      <label className="admin-muted text-sm">{label}</label>
+
+      <input
+        className="admin-input"
+        defaultValue={value != null ? String(value) : ""}
+        onBlur={(e) => {
+          let v: any = e.target.value;
+          if (typeof value === "number") v = Number(v);
+          update(v as T);
+        }}
+      />
+    </div>
+  );
+}
+"use client";
+import type { User } from "app/admin/src/types/Users";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
+/* ============================================================================
+   PAGE: ADMIN — EDIT USER
+   Allineato completamente al backend Workers.
+============================================================================ */
+
+export default function EditUser() {
+  const { id } = useParams();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  // ==========================================================
+  // LOAD USER FROM BFF
+  // ==========================================================
+  async function loadUser() {
+    setLoading(true);
+
+    const res = await fetch(`/api/admin/users`, { cache: "no-store" });
+    const data = await res.json();
+
+    if (!data.ok) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    const found = data.users.find((u: any) => u.id === id);
+    setUser(found || null);
+    setLoading(false);
+  }
+
+  // ==========================================================
+  // GENERIC FIELD UPDATE (supports nested fields)
+  // ==========================================================
+  async function update(field: string, value: any) {
+    if (!user) return;
+
+    setSaving(true);
+    setMsg("");
+
+    const res = await fetch(`/api/admin/user-update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        field,
+        value,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      setMsg("❌ " + (data.error || "Errore salvataggio"));
+      setSaving(false);
+      return;
+    }
+
+    setUser(data.user);
+    setMsg("✔ Salvato");
+    setSaving(false);
+  }
+
+  // ==========================================================
+  // RESET PASSWORD
+  // ==========================================================
+  async function resetPassword() {
+    const newPass = prompt("Inserisci nuova password:");
+    if (!newPass || !user) return;
+
+    const res = await fetch(`/api/user/update-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        oldPassword: "", // bypassato dall'admin
+        newPassword: newPass,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.ok) alert("Password aggiornata");
+    else alert("Errore durante l'aggiornamento");
+  }
+
+  // ==========================================================
+  // DELETE USER
+  // ==========================================================
+  async function deleteUser() {
+    if (!user) return;
+    if (!confirm("Confermi eliminazione DEFINITIVA?")) return;
+
+    const res = await fetch(`/api/admin/user-update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        field: "delete",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.deleted) {
+      alert("Utente eliminato");
+      window.location.href = "/admin/users";
+    } else {
+      alert("Errore eliminazione");
+    }
+  }
+
+  // ==========================================================
+  // LOAD ON MOUNT
+  // ==========================================================
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  // ==========================================================
+  // RENDERING
+  // ==========================================================
+  if (loading) return <p className="p-6 admin-muted">Loading...</p>;
+  if (!user) return <p className="p-6 text-red-400">User not found</p>;
+
+  return (
+    <div className="space-y-8">
+      <h1 className="admin-title text-3xl font-bold">
+        Editing User #{user.index} — {user.nickname}
+      </h1>
+
+      <p className="admin-muted">{msg}</p>
+
+      {/* ======================================================
+         BASIC INFO
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Profilo</h2>
+
+        <Field label="Email" value={user.email} update={(v)=>update("email", v)} />
+        <Field label="Firstname" value={user.firstname} update={(v)=>update("firstname", v)} />
+        <Field label="Lastname" value={user.lastname} update={(v)=>update("lastname", v)} />
+      </section>
+
+      {/* ======================================================
+         STATS
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Stats</h2>
+
+        <Field
+          label="KRM Totale"
+          value={user.stats?.krm_total}
+          update={(v)=>update("stats.krm_total", Number(v))}
+        />
+
+        <Field
+          label="Livello"
+          value={user.stats?.level_total}
+          update={(v)=>update("stats.level_total", Number(v))}
+        />
+      </section>
+
+      {/* ======================================================
+         STATUS
+      ====================================================== */}
+      <section className="admin-card p-6 space-y-4">
+        <h2 className="admin-title text-xl">Status</h2>
+
+        <select
+          className="admin-input"
+          defaultValue={user.status?.suspended ? "suspended" : "active"}
+          onChange={(e) => update("status.suspended", e.target.value === "suspended")}
+        >
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </section>
+
+      {/* RESET PASSWORD */}
+      <div className="admin-card p-6">
+        <button className="admin-btn admin-btn-blue" onClick={resetPassword}>
+          Reset Password
+        </button>
+      </div>
+
+      {/* DELETE USER */}
+      <div className="admin-card p-6">
+        <button className="admin-btn admin-btn-danger" onClick={deleteUser}>
+          Delete User
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   FIELD COMPONENT
+============================================================================ */
+type FieldProps<T> = {
+  label: string;
+  value: T;
+  update: (v: T) => void;
+};
+
+function Field<T>({ label, value, update }: FieldProps<T>) {
+  return (
+    <div className="space-y-2">
+      <label className="admin-muted text-sm">{label}</label>
+
+      <input
+        className="admin-input"
+        defaultValue={value != null ? String(value) : ""}
+        onBlur={(e) => {
+          let v: any = e.target.value;
+          if (typeof value === "number") v = Number(v);
+          update(v as T);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+├─ app/admin/users/page.tsx
+```
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import UserTable from "./UserTable";
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<p className="admin-muted">Caricamento utenti...</p>}>
+      <AdminUsers />
+    </Suspense>
+  );
+}
+
+function AdminUsers() {
+  const [userList, setUserList] = useState<any[]>([]);
+  const [searchId, setSearchId] = useState("");
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  async function loadUserList() {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`, {
+      method: "GET",
+      cache: "no-store"
+    });
+
+    const data = await res.json();
+    if (data.ok) {
+      setUserList(data.users);
+    } else {
+      setMsg(data.error || "Errore di caricamento utenti");
+    }
+  }
+
+  useEffect(() => {
+    loadUserList();
+  }, []);
+
+  async function searchUser() {
+    if (!searchId) return;
+
+    setLoading(true);
+    setMsg("");
+
+    const res = await fetch(`/api/admin/user/get`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: searchId })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      setSelectedUser(null);
+      setMsg(data.error);
+    } else {
+      setSelectedUser(data);
+    }
+
+    setLoading(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="admin-title text-2xl font-bold">Gestione Utenti</h1>
+
+      <button
+        onClick={async () => {
+          const res = await fetch(`/api/admin/user/create`, {
+            method: "POST"
+          });
+
+          const data = await res.json();
+
+          if (data.error) {
+            alert("Errore creando utente: " + data.error);
+            return;
+          }
+
+          window.location.href = `/admin/users/${data.id}/edit`;
+        }}
+        className="admin-btn admin-btn-gold"
+      >
+        + Create New User
+      </button>
+
+      <UserTable users={userList} />
+
+      <div className="admin-card space-y-4">
+        <p className="admin-muted">Cerca utente per ID:</p>
+
+        <input
+          className="admin-input"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+        />
+
+        <button
+          onClick={searchUser}
+          className="admin-btn admin-btn-gold"
+        >
+          {loading ? "Ricerca..." : "Cerca"}
+        </button>
+
+        {msg && <p className="admin-muted">{msg}</p>}
+      </div>
+
+      {selectedUser && (
+        <div className="admin-card">
+          <p className="admin-title">User loaded</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+├─ app/api/admin/login/route.ts
+```typescript
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await backend.json();
+
+  if (!backend.ok) {
+    return NextResponse.json(data, { status: backend.status });
+  }
+
+  const res = NextResponse.json({ ok: true });
+
+  res.cookies.set("agw_admin_session", data.sessionId, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res;
+}
+```
+
+├─ app/api/admin/logout/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+
+  cookieStore.set("agw_admin_session", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  });
+
+  return NextResponse.json({ ok: true });
+}
+```
+
+├─ app/api/admin/me/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ ok: false });
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/me`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    }
+  );
+
+  return NextResponse.json(await backend.json());
+}
+```
+
+├─ app/api/admin/overview/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/overview`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    }
+  );
+
+  const data = await backend.json();
+
+  return NextResponse.json(data, { status: backend.status });
+}
+```
+
+├─ app/api/admin/user-update/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const body = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, ...body }),
+    }
+  );
+
+  const data = await backend.json();
+
+  return NextResponse.json(data, { status: backend.status });
+}
+```
+
+├─ app/api/admin/user/create/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const id = crypto.randomUUID();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId,
+        id,
+        field: "create",
+        value: {}
+      })
+    }
+  );
+
+  const data = await backend.json();
+
+  if (!data.ok)
+    return NextResponse.json(data, { status: backend.status });
+
+  return NextResponse.json({ ok: true, id });
+}
+```
+
+├─ app/api/admin/user/get/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const { id } = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`,
+    { method: "GET" }
+  );
+
+  const data = await backend.json();
+
+  if (!data.ok) return NextResponse.json(data, { status: backend.status });
+
+  const user = data.users.find((u: any) => u.id === id);
+
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  return NextResponse.json(user);
+}
+```
+
+├─ app/api/admin/users/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function GET() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_admin_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`,
+    { cache: "no-store" }
+  );
+
+  const data = await backend.json();
+  return NextResponse.json(data, { status: backend.status });
+}
+```
+
+├─ app/api/user/delete-account/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("agw_session")?.value;
+
+  if (!userId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/delete-account`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/do-reset/route.ts
+```typescript
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/do-reset`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/get/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("agw_session")?.value;
+
+  if (!sessionId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/get`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: sessionId }),
+    }
+  );
+
+  const data = await backend.json();
+
+  return NextResponse.json(data, { status: backend.status });
+}
+```
+
+├─ app/api/user/login/route.ts
+```typescript
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const { email, password } = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/login`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    }
+  );
+
+  const data = await backend.json();
+
+  if (!backend.ok) {
+    return NextResponse.json(data, { status: backend.status });
+  }
+
+  const res = NextResponse.json({ ok: true });
+
+  res.cookies.set("agw_session", data.sessionId, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res;
+}
+```
+
+├─ app/api/user/logout/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST() {
+  const cookieStore = await cookies();
+
+  cookieStore.set("agw_session", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  });
+
+  return NextResponse.json({ ok: true });
+}
+```
+
+├─ app/api/user/register/route.ts
+```typescript
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/register`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await backend.json();
+  return NextResponse.json(data, { status: backend.status });
+}
+```
+
+├─ app/api/user/request-reset/route.ts
+```typescript
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const { email } = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/request-reset`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/update-avatar/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("agw_session")?.value;
+
+  if (!userId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const { avatarBase64 } = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/update-avatar`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, avatarBase64 }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/update-email-prefs/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("agw_session")?.value;
+
+  if (!userId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const { prefs } = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/update-email-prefs`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, prefs }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/update-password/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("agw_session")?.value;
+
+  if (!userId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const body = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/update-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, ...body }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/api/user/update-profile/route.ts
+```typescript
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("agw_session")?.value;
+
+  if (!userId)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const data = await req.json();
+
+  const backend = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/user/update-profile`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, data }),
+    }
+  );
+
+  return NextResponse.json(await backend.json(), {
+    status: backend.status,
+  });
+}
+```
+
+├─ app/components/lib/apiClients.ts
+```typescript
+```
+
+├─ app/components/lib/auth.ts
+```typescript
+```
+
+├─ app/components/lib/session.ts
+```typescript
+```
+
+├─ app/components/store/userStore.ts
+```typescript
+```
+
+├─ app/dashboard/components/AvatarUploader.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function AvatarUploader({ user }: { user: any }) {
+  const [preview, setPreview] = useState(user.profile_image);
+
+  async function handleUpload(e: any) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const base64 = await toBase64(file);
+    setPreview(base64);
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/update-avatar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, avatarBase64: base64 }),
+    });
+
+    alert("Avatar aggiornato");
+  }
+
+  function toBase64(file: File) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-md flex gap-4">
+      <img
+        src={preview || "/default-avatar.png"}
+        className="w-24 h-24 rounded-full object-cover border"
+      />
+
+      <div>
+        <h3 className="font-semibold mb-2">Avatar</h3>
+
+        <input type="file" accept="image/*" onChange={handleUpload} />
+
+        <p className="text-sm mt-2 text-gray-500">
+          Carica un’immagine quadrata.
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/components/DisciplineCard.tsx
+```
+export default function DisciplineCard({ user }: any) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-3">Disciplina</h2>
+  
+        <div className="flex justify-between text-lg font-medium">
+          <div>
+            Giornaliero:
+            {" "}
+            {user.discipline.daily_completed}/{user.discipline.daily_goal}
+          </div>
+  
+          <div>
+            Settimanale:
+            {" "}
+            {user.discipline.weekly_completed}/{user.discipline.weekly_goal}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ```
+
+├─ app/dashboard/components/EmailPreferences.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function EmailPreferences({
+  prefs,
+  userId,
+}: {
+  prefs: any;
+  userId: string;
+}) {
+  const [state, setState] = useState(prefs);
+
+  async function savePrefs() {
+    const res = await fetch("/api/user/update-email-prefs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, prefs: state }),
+    });
+
+    if (!res.ok) {
+      alert("Errore aggiornamento preferenze email");
+      return;
+    }
+
+    alert("Preferenze aggiornate");
+  }
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Preferenze Email</h2>
+
+      <div className="flex flex-col gap-3">
+        {Object.keys(state).map((key) => (
+          <label key={key} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(state as any)[key]}
+              onChange={(e) =>
+                setState({
+                  ...state,
+                  [key]: e.target.checked,
+                })
+              }
+            />
+            <span className="capitalize">{key}</span>
+          </label>
+        ))}
+      </div>
+
+      <button
+        onClick={savePrefs}
+        className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+      >
+        Salva preferenze
+      </button>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/components/LevelCard.tsx
+```
+export default function LevelCard({ user }: any) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-3">Il tuo livello</h2>
+        <div className="text-5xl font-extrabold text-gray-900">
+          {user.stats.level_total}
+        </div>
+        <p className="text-gray-600">
+          Continua a migliorare per salire di livello.
+        </p>
+      </div>
+    );
+  }
+  ```
+
+├─ app/dashboard/components/LogoutButton.tsx
+```
+"use client";
+
+export default function LogoutButton() {
+  async function logout() {
+    await fetch("/api/user/logout", { method: "POST" })
+    window.location.href = "/login";
+  }
+
+  return (
+    <button
+      onClick={logout}
+      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+    >
+      Logout
+    </button>
+  );
+}
+```
+
+├─ app/dashboard/components/ProfileForm.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function ProfileForm({ user }: { user: any }) {
+  const [form, setForm] = useState({
+    firstname: user.firstname || "",
+    lastname: user.lastname || "",
+    nickname: user.nickname || "",
+    birthdate: user.personal?.birthdate || "",
+    gender: user.personal?.gender || "",
+    height: user.personal?.height || "",
+    weight: user.personal?.weight || "",
+    job: user.personal?.job || "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  async function handleSave() {
+    setLoading(true);
+
+    const res = await fetch("/api/user/update-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, data: form }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      alert("Errore aggiornamento profilo");
+      return;
+    }
+
+    alert("Profilo aggiornato");
+  }
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Dati Personali</h2>
+
+      <div className="grid grid-cols-2 gap-4">
+        {Object.keys(form).map((key) => (
+          <div key={key} className="flex flex-col">
+            <label className="text-sm font-medium capitalize">{key}</label>
+            <input
+              type="text"
+              className="border p-2 rounded bg-gray-50"
+              value={(form as any)[key]}
+              onChange={(e) =>
+                setForm({ ...form, [key]: e.target.value })
+              }
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={handleSave}
+        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        {loading ? "Salvataggio..." : "Salva"}
+      </button>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/components/ProfileStrip.tsx
+```
+export default function ProfileStrip({ user }: any) {
+    return (
+      <div className="flex items-center gap-4 bg-white p-5 rounded-xl shadow-sm">
+        <div className="h-14 w-14 rounded-full bg-gray-200" />
+  
+        <div>
+          <div className="text-lg font-semibold">{user.firstname}</div>
+          <div className="text-gray-500 text-sm">{user.email}</div>
+        </div>
+      </div>
+    );
+  }
+  ```
+
+├─ app/dashboard/components/Sidebar.tsx
+```
+import LogoutButton from "./LogoutButton";
+export default function Sidebar() {
+    return (
+      <aside className="w-64 bg-white shadow-md p-6 flex flex-col gap-4">
+        <h2 className="text-xl font-bold">AGW</h2>
+  
+        <a href="/dashboard" className="text-gray-700 hover:text-black">
+          Dashboard
+        </a>
+        <a href="/dashboard/profile" className="text-gray-700 hover:text-black">
+          Profilo
+        </a>
+        <a href="/dashboard/missions" className="text-gray-700 hover:text-black">
+          Missioni
+        </a>
+        <a href="/dashboard/stats" className="text-gray-700 hover:text-black">
+          Statistiche
+        </a>
+        <a href="/dashboard/settings" className="text-gray-700 hover:text-black">
+          Impostazioni
+        </a>
+        <li className="mt-4">
+        <form action={"/api/user/logout"} method="POST">
+
+        <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100 rounded">
+        Logout
+        </button>
+        </form>
+        </li>
+      </aside>
+    );
+  }
+  ```
+
+├─ app/dashboard/components/StatsRow.tsx
+```
+export default function StatsRow({ user }: any) {
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+          <div className="text-gray-400 text-sm">KRM Totali</div>
+          <div className="text-3xl font-semibold">
+            {user.stats.krm_total}
+          </div>
+        </div>
+  
+        <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+          <div className="text-gray-400 text-sm">Missioni</div>
+          <div className="text-3xl font-semibold">
+            {user.stats.missions_completed_total}
+          </div>
+        </div>
+  
+        <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+          <div className="text-gray-400 text-sm">Attività 7 giorni</div>
+          <div className="text-3xl font-semibold">
+            {user.stats.dayPurchasesLast7Days}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ```
+
+├─ app/dashboard/components/Topbar.tsx
+```
+export default function Topbar({ user }: any) {
+    return (
+      <header className="h-16 bg-white shadow flex items-center justify-between px-6">
+        <div className="text-lg font-semibold">Benvenuto</div>
+  
+        <div className="flex items-center gap-3">
+          <span className="text-gray-700">{user.firstname || user.email}</span>
+          <div className="h-10 w-10 rounded-full bg-gray-200"></div>
+        </div>
+      </header>
+    );
+  }
+  ```
+
+├─ app/dashboard/layout.tsx
+```
+"use client";
+
+import Sidebar from "./components/Sidebar";
+import Topbar from "./components/Topbar";
+import { useEffect, useState } from "react";
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+        const res = await fetch("/api/user/get", { method: "POST" });
+        const data = await res.json();
+        if (!data.ok) window.location.href = "/login";
+        setUser(data.user);
+    }
+    load();
+  }, []);
+
+  if (!user) return null;
+
+  return (
+    <div className="min-h-screen flex bg-gray-100">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Topbar user={user} />
+        <main className="p-6">{children}</main>
+      </div>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/page.tsx
+```
+"use client";
+
+import ProfileStrip from "./components/ProfileStrip";
+import LevelCard from "./components/LevelCard";
+import StatsRow from "./components/StatsRow";
+import DisciplineCard from "./components/DisciplineCard";
+import { useEffect, useState } from "react";
+
+export default function DashboardPage() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/user/get", { method: "POST" });
+      const data = await res.json();
+      if (!data.ok) window.location.href = "/login";
+      setUser(data.user);
+    }
+    load();
+  }, []);
+
+  if (!user) return null;
+
+  return (
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      <ProfileStrip user={user} />
+      <LevelCard user={user} />
+      <StatsRow user={user} />
+      <DisciplineCard user={user} />
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/profile/page.tsx
+```
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import ProfileForm from "../components/ProfileForm";
+import EmailPreferences from "../components/EmailPreferences";
+import AvatarUploader from "../components/AvatarUploader";
+
+export default async function ProfilePage() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("agw_session")?.value;
+
+  if (!session) redirect("/login");
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+  const res = await fetch(`${apiUrl}/api/user/get`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: session }),
+    cache: "no-store",
+  });
+
+  const data = await res.json();
+const user = data.user;
+
+  return (
+    <div className="flex flex-col gap-8 p-6">
+      <h1 className="text-3xl font-bold">Il tuo Profilo</h1>
+
+      <AvatarUploader user={user} />
+
+      <ProfileForm user={user} />
+
+      <EmailPreferences prefs={user.mailing.preferences} userId={user.id} />
+    
+    </div>
+    
+  );
+}
+```
+
+├─ app/dashboard/settings/DangerZone.tsx
+```
+"use client";
+
+export default function DangerZone() {
+  async function handleDelete() {
+    if (!confirm("Sei sicuro? Questa azione è irreversibile.")) return;
+
+    // 1) Delete account on backend via BFF
+    const res = await fetch("/api/user/delete-account", {
+      method: "POST",
+    });
+
+    if (!res.ok) {
+      alert("Errore durante l'eliminazione dell'account.");
+      return;
+    }
+
+    // 2) Remove session cookie client-side (fail-safe)
+    document.cookie = "agw_session=; Path=/; Max-Age=0; SameSite=Lax;";
+
+    // 3) Clear any local/session storage if needed
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 4) Notify user and redirect securely
+    alert("Account eliminato correttamente.");
+    window.location.href = "/";
+  }
+
+  return (
+    <div className="p-6 bg-red-50 border border-red-200 rounded-xl shadow-md">
+      <h2 className="text-xl font-bold text-red-700 mb-4">Zona Pericolosa</h2>
+
+      <button
+        onClick={handleDelete}
+        className="bg-red-600 text-white px-4 py-2 rounded"
+      >
+        Elimina Account
+      </button>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/settings/NotificationSetting.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function NotificationSettings() {
+  const [pushEnabled, setPushEnabled] = useState(false);
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Notifiche</h2>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={pushEnabled}
+          onChange={(e) => setPushEnabled(e.target.checked)}
+        />
+        Attiva notifiche push (coming soon)
+      </label>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/settings/SecurityPanel.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function SecurityPanel() {
+  const [oldPass, setOldPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+    
+  async function changePassword() {
+    const me = await fetch("/api/user/get", { method: "POST" }).then(r => r.json());
+    if (!me.ok) {
+      alert("Sessione non valida");
+      return;
+    }
+  
+    const userId = me.user.id;
+  
+    const res = await fetch("/api/user/update-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        oldPassword: oldPass,
+        newPassword: newPass
+      })
+    });
+  
+    if (!res.ok) {
+      alert("Errore nel cambio password");
+      return;
+    }
+  
+    alert("Password aggiornata");
+  }
+  
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Sicurezza</h2>
+
+      <label className="flex flex-col mb-2">
+        Vecchia password
+        <input
+          type="password"
+          className="border p-2 rounded"
+          onChange={(e) => setOldPass(e.target.value)}
+        />
+      </label>
+
+      <label className="flex flex-col mb-2">
+        Nuova password
+        <input
+          type="password"
+          className="border p-2 rounded"
+          onChange={(e) => setNewPass(e.target.value)}
+        />
+      </label>
+
+      <button
+        onClick={changePassword}
+        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Aggiorna
+      </button>
+    </div>
+  );
+}
+```
+
+├─ app/dashboard/settings/page.tsx
+```
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import SecurityPanel from "./SecurityPanel";
+import NotificationSettings from "./NotificationSetting";
+import DangerZone from "./DangerZone";
+
+export default async function SettingsPage() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("agw_session")?.value;
+
+  if (!session) redirect("/login");
+
+  return (
+    <div className="flex flex-col gap-8 p-6">
+      <h1 className="text-3xl font-bold">Impostazioni Account</h1>
+
+      <SecurityPanel />
+      <NotificationSettings />
+      <DangerZone />
+    </div>
+  );
+}
+```
+
+├─ app/forgot-password/page.tsx
+```
+"use client";
+
+import { useState, useEffect } from "react";
+
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const preEmail = params.get("email");
+    if (preEmail) setEmail(preEmail);
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/request-reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    alert("Se l’email è registrata, riceverai un link per reimpostare la password.");
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Recupera Password
+        </h1>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="email"
+            placeholder="Inserisci la tua email"
+            className="p-3 border rounded-lg"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <button
+            type="submit"
+            className="py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
+          >
+            Invia link di recupero
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+}
+```
+
+├─ app/layout.tsx
+```
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "AGW - A Gold Winner",
+  description: "Reward-Based System",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#FFD700" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+├─ app/login/page.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [failCount, setFailCount] = useState(0);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+    
+
+    const data = await res.json();
+
+    // EMAIL NON ESISTE
+    if (res.status === 404 && data.error === "EMAIL_NOT_FOUND") {
+      setError("Questa email non risulta registrata.");
+      return;
+    }
+
+    // PASSWORD ERRATA
+    if (res.status === 401 && data.error === "WRONG_PASSWORD") {
+      setFailCount(n => n + 1);
+      setError("Password errata. Riprova.");
+      return;
+    }
+
+    // LOGIN OK
+    if (data.ok) {
+      window.location.href = "/dashboard";
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+        <h1 className="text-3xl font-bold mb-6 text-center">Accedi</h1>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="p-3 border rounded-lg"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="p-3 border rounded-lg"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          {error && (
+            <div className="text-red-600 text-sm text-center">{error}</div>
+          )}
+
+          <button
+            type="submit"
+            className="py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
+          >
+            Accedi
+          </button>
+        </form>
+
+        {/* EMAIL NON REGISTRATA */}
+        {error === "Questa email non risulta registrata." && (
+          <div className="mt-5 text-center">
+            <p className="mb-3">Vuoi creare un nuovo account?</p>
+            <a
+              href={`/register?email=${encodeURIComponent(email)}`}
+              className="text-blue-600 underline font-semibold"
+            >
+              Registrati con questa email
+            </a>
+          </div>
+        )}
+
+        {/* DOPO 3 ERRORI PASSWORD → PASSWORD RESET */}
+        {failCount >= 3 && error !== "Questa email non risulta registrata." && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+            <p className="text-yellow-800 font-medium mb-2">
+              Problemi ad accedere?
+            </p>
+            <a
+              href={`/forgot-password?email=${encodeURIComponent(email)}`}
+              className="text-blue-600 underline font-semibold"
+            >
+              Reimposta la password
+            </a>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+```
+
+├─ app/page.tsx
+```
+"use client";
+
+import { useRouter } from "next/navigation";
+
+export default function Home() {
+  const router = useRouter();
+
+  return (
+    <main
+      className="w-full min-h-screen bg-cover bg-center flex flex-col items-center justify-center text-white"
+      style={{
+        backgroundImage: "url('/wellness-bg.jpg')",
+      }}
+    >
+      <div className="bg-black/40 backdrop-blur-md px-10 py-12 rounded-2xl text-center shadow-xl max-w-md">
+        <h1 className="text-4xl font-bold mb-4">Benvenuto in AGW</h1>
+        <p className="text-lg mb-8 opacity-90">
+          Il tuo percorso di crescita, benessere e disciplina inizia qui.
+        </p>
+
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={() => router.push("/login")}
+            className="px-6 py-3 bg-white text-black text-lg rounded-lg font-semibold hover:bg-gray-200 transition"
+          >
+            Accedi
+          </button>
+
+          <button
+            onClick={() => router.push("/register")}
+            className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg font-semibold hover:bg-blue-700 transition"
+          >
+            Registrati
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+```
+
+├─ app/register/page.tsx
+```
+"use client";
+
+import { useState } from "react";
+
+export default function RegisterPage() {
+  const [email, setEmail] = useState("");
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState(false);
+
+  async function handleRegister() {
+    setError("");
+    setOk(false);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, firstname, lastname, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      setError(data.error || "Registrazione fallita");
+      return;
+    }
+
+    setOk(true);
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-sm p-6 space-y-4 border rounded-lg bg-white">
+        <h1 className="text-2xl font-bold text-center">Registrati</h1>
+
+        <input className="w-full border px-3 py-2 rounded" placeholder="Nome" value={firstname} onChange={e => setFirstname(e.target.value)} />
+        <input className="w-full border px-3 py-2 rounded" placeholder="Cognome" value={lastname} onChange={e => setLastname(e.target.value)} />
+        <input className="w-full border px-3 py-2 rounded" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+        <input className="w-full border px-3 py-2 rounded" placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {ok && <p className="text-sm text-green-600">Registrazione completata. Ora puoi accedere.</p>}
+
+        <button onClick={handleRegister} className="w-full py-2 bg-black text-white rounded">
+          Crea account
+        </button>
+      </div>
+    </main>
+  );
+}
+```
+
+├─ app/reset-password/page.tsx
+```
+"use client";
+import { useState } from "react";
+
+export default function ResetPasswordPage({ searchParams }: any) {
+  const token = searchParams.token;
+  const [done, setDone] = useState(false);
+
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+    const pass = e.target.password.value;
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/do-reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, new_password: pass })
+    });
+
+    const data = await res.json();
+    if (data.ok) setDone(true);
+  }
+
+  if (!token) return <p>Token mancante.</p>;
+
+  return (
+    <main className="p-8">
+      <h1 className="text-xl font-bold mb-4">Imposta nuova password</h1>
+
+      {done ? (
+        <p>Password aggiornata. Ora puoi fare login.</p>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input type="password" name="password" placeholder="Nuova password" className="border p-2" />
+          <button className="bg-green-600 text-white p-2 rounded">Aggiorna</button>
+        </form>
+      )}
+    </main>
+  );
+}
+```
+
+├─ app/test-env/page.tsx
+```
+
+"use client";
+import { useEffect } from "react";
+
+export default function TestEnv() {
+  useEffect(() => {
+    console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
+  }, []);
+
+  return <p>Controlla la console del browser</p>;
+}
+```
+
+├─ lib/utils.ts
+```typescript
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+├─ next-env.d.ts
+```typescript
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+```
+
+├─ next.config.ts
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  experimental: {
+    optimizeCss: true,
+  },
+
+  // Questa linea disabilita l'errore di Turbopack
+  turbopack: {},
+};
+
+export default nextConfig;
+```
+
+├─ package-lock.json
+```json
+{
+  "name": "agw-app",
+  "version": "0.1.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "agw-app",
+      "version": "0.1.0",
+      "dependencies": {
+        "@radix-ui/react-dialog": "^1.1.15",
+        "@radix-ui/react-slot": "^1.2.4",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.554.0",
+        "next": "16.0.3",
+        "next-pwa": "^5.6.0",
+        "next-themes": "^0.4.6",
+        "react": "19.2.0",
+        "react-dom": "19.2.0",
+        "sonner": "^2.0.7",
+        "tailwind-merge": "^3.4.0"
+      },
+      "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "autoprefixer": "^10.4.22",
+        "eslint": "^9",
+        "eslint-config-next": "16.0.3",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.18",
+        "tw-animate-css": "^1.4.0",
+        "typescript": "^5"
+      }
+    },
+    "node_modules/@alloc/quick-lru": {
+      "version": "5.2.0",
+      "resolved": "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz",
+      "integrity": "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=10"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/@babel/code-frame": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.27.1.tgz",
+      "integrity": "sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-validator-identifier": "^7.27.1",
+        "js-tokens": "^4.0.0",
+        "picocolors": "^1.1.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/compat-data": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/compat-data/-/compat-data-7.28.5.tgz",
+      "integrity": "sha512-6uFXyCayocRbqhZOB+6XcuZbkMNimwfVGFji8CTZnCzOHVGvDqzvitu1re2AU5LROliz7eQPhB8CpAMvnx9EjA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/core": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/core/-/core-7.28.5.tgz",
+      "integrity": "sha512-e7jT4DxYvIDLk1ZHmU/m/mB19rex9sv0c2ftBtjSBv+kVM/902eh0fINUzD7UwLLNR+jU585GxUJ8/EBfAM5fw==",
+      "license": "MIT",
+      "peer": true,
+      "dependencies": {
+        "@babel/code-frame": "^7.27.1",
+        "@babel/generator": "^7.28.5",
+        "@babel/helper-compilation-targets": "^7.27.2",
+        "@babel/helper-module-transforms": "^7.28.3",
+        "@babel/helpers": "^7.28.4",
+        "@babel/parser": "^7.28.5",
+        "@babel/template": "^7.27.2",
+        "@babel/traverse": "^7.28.5",
+        "@babel/types": "^7.28.5",
+        "@jridgewell/remapping": "^2.3.5",
+        "convert-source-map": "^2.0.0",
+        "debug": "^4.1.0",
+        "gensync": "^1.0.0-beta.2",
+        "json5": "^2.2.3",
+        "semver": "^6.3.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/babel"
+      }
+    },
+    "node_modules/@babel/generator": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/generator/-/generator-7.28.5.tgz",
+      "integrity": "sha512-3EwLFhZ38J4VyIP6WNtt2kUdW9dokXA9Cr4IVIFHuCpZ3H8/YFOl5JjZHisrn1fATPBmKKqXzDFvh9fUwHz6CQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/parser": "^7.28.5",
+        "@babel/types": "^7.28.5",
+        "@jridgewell/gen-mapping": "^0.3.12",
+        "@jridgewell/trace-mapping": "^0.3.28",
+        "jsesc": "^3.0.2"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-annotate-as-pure": {
+      "version": "7.27.3",
+      "resolved": "https://registry.npmjs.org/@babel/helper-annotate-as-pure/-/helper-annotate-as-pure-7.27.3.tgz",
+      "integrity": "sha512-fXSwMQqitTGeHLBC08Eq5yXz2m37E4pJX1qAU1+2cNedz/ifv/bVXft90VeSav5nFO61EcNgwr0aJxbyPaWBPg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/types": "^7.27.3"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-compilation-targets": {
+      "version": "7.27.2",
+      "resolved": "https://registry.npmjs.org/@babel/helper-compilation-targets/-/helper-compilation-targets-7.27.2.tgz",
+      "integrity": "sha512-2+1thGUUWWjLTYTHZWK1n8Yga0ijBz1XAhUXcKy81rd5g6yh7hGqMp45v7cadSbEHc9G3OTv45SyneRN3ps4DQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/compat-data": "^7.27.2",
+        "@babel/helper-validator-option": "^7.27.1",
+        "browserslist": "^4.24.0",
+        "lru-cache": "^5.1.1",
+        "semver": "^6.3.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-create-class-features-plugin": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.28.5.tgz",
+      "integrity": "sha512-q3WC4JfdODypvxArsJQROfupPBq9+lMwjKq7C33GhbFYJsufD0yd/ziwD+hJucLeWsnFPWZjsU2DNFqBPE7jwQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-annotate-as-pure": "^7.27.3",
+        "@babel/helper-member-expression-to-functions": "^7.28.5",
+        "@babel/helper-optimise-call-expression": "^7.27.1",
+        "@babel/helper-replace-supers": "^7.27.1",
+        "@babel/helper-skip-transparent-expression-wrappers": "^7.27.1",
+        "@babel/traverse": "^7.28.5",
+        "semver": "^6.3.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/helper-create-regexp-features-plugin": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/helper-create-regexp-features-plugin/-/helper-create-regexp-features-plugin-7.28.5.tgz",
+      "integrity": "sha512-N1EhvLtHzOvj7QQOUCCS3NrPJP8c5W6ZXCHDn7Yialuy1iu4r5EmIYkXlKNqT99Ciw+W0mDqWoR6HWMZlFP3hw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-annotate-as-pure": "^7.27.3",
+        "regexpu-core": "^6.3.1",
+        "semver": "^6.3.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/helper-define-polyfill-provider": {
+      "version": "0.6.5",
+      "resolved": "https://registry.npmjs.org/@babel/helper-define-polyfill-provider/-/helper-define-polyfill-provider-0.6.5.tgz",
+      "integrity": "sha512-uJnGFcPsWQK8fvjgGP5LZUZZsYGIoPeRjSF5PGwrelYgq7Q15/Ft9NGFp1zglwgIv//W0uG4BevRuSJRyylZPg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-compilation-targets": "^7.27.2",
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "debug": "^4.4.1",
+        "lodash.debounce": "^4.0.8",
+        "resolve": "^1.22.10"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.4.0 || ^8.0.0-0 <8.0.0"
+      }
+    },
+    "node_modules/@babel/helper-globals": {
+      "version": "7.28.0",
+      "resolved": "https://registry.npmjs.org/@babel/helper-globals/-/helper-globals-7.28.0.tgz",
+      "integrity": "sha512-+W6cISkXFa1jXsDEdYA8HeevQT/FULhxzR99pxphltZcVaugps53THCeiWA8SguxxpSp3gKPiuYfSWopkLQ4hw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-member-expression-to-functions": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/helper-member-expression-to-functions/-/helper-member-expression-to-functions-7.28.5.tgz",
+      "integrity": "sha512-cwM7SBRZcPCLgl8a7cY0soT1SptSzAlMH39vwiRpOQkJlh53r5hdHwLSCZpQdVLT39sZt+CRpNwYG4Y2v77atg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/traverse": "^7.28.5",
+        "@babel/types": "^7.28.5"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-module-imports": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-module-imports/-/helper-module-imports-7.27.1.tgz",
+      "integrity": "sha512-0gSFWUPNXNopqtIPQvlD5WgXYI5GY2kP2cCvoT8kczjbfcfuIljTbcWrulD1CIPIX2gt1wghbDy08yE1p+/r3w==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/traverse": "^7.27.1",
+        "@babel/types": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-module-transforms": {
+      "version": "7.28.3",
+      "resolved": "https://registry.npmjs.org/@babel/helper-module-transforms/-/helper-module-transforms-7.28.3.tgz",
+      "integrity": "sha512-gytXUbs8k2sXS9PnQptz5o0QnpLL51SwASIORY6XaBKF88nsOT0Zw9szLqlSGQDP/4TljBAD5y98p2U1fqkdsw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-module-imports": "^7.27.1",
+        "@babel/helper-validator-identifier": "^7.27.1",
+        "@babel/traverse": "^7.28.3"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/helper-optimise-call-expression": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-optimise-call-expression/-/helper-optimise-call-expression-7.27.1.tgz",
+      "integrity": "sha512-URMGH08NzYFhubNSGJrpUEphGKQwMQYBySzat5cAByY1/YgIRkULnIy3tAMeszlL/so2HbeilYloUmSpd7GdVw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/types": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-plugin-utils": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-plugin-utils/-/helper-plugin-utils-7.27.1.tgz",
+      "integrity": "sha512-1gn1Up5YXka3YYAHGKpbideQ5Yjf1tDa9qYcgysz+cNCXukyLl6DjPXhD3VRwSb8c0J9tA4b2+rHEZtc6R0tlw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-remap-async-to-generator": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-remap-async-to-generator/-/helper-remap-async-to-generator-7.27.1.tgz",
+      "integrity": "sha512-7fiA521aVw8lSPeI4ZOD3vRFkoqkJcS+z4hFo82bFSH/2tNd6eJ5qCVMS5OzDmZh/kaHQeBaeyxK6wljcPtveA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-annotate-as-pure": "^7.27.1",
+        "@babel/helper-wrap-function": "^7.27.1",
+        "@babel/traverse": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/helper-replace-supers": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-replace-supers/-/helper-replace-supers-7.27.1.tgz",
+      "integrity": "sha512-7EHz6qDZc8RYS5ElPoShMheWvEgERonFCs7IAonWLLUTXW59DP14bCZt89/GKyreYn8g3S83m21FelHKbeDCKA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-member-expression-to-functions": "^7.27.1",
+        "@babel/helper-optimise-call-expression": "^7.27.1",
+        "@babel/traverse": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/helper-skip-transparent-expression-wrappers": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.27.1.tgz",
+      "integrity": "sha512-Tub4ZKEXqbPjXgWLl2+3JpQAYBJ8+ikpQ2Ocj/q/r0LwE3UhENh7EUabyHjz2kCEsrRY83ew2DQdHluuiDQFzg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/traverse": "^7.27.1",
+        "@babel/types": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-string-parser": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.27.1.tgz",
+      "integrity": "sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-validator-identifier": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.28.5.tgz",
+      "integrity": "sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-validator-option": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/helper-validator-option/-/helper-validator-option-7.27.1.tgz",
+      "integrity": "sha512-YvjJow9FxbhFFKDSuFnVCe2WxXk1zWc22fFePVNEaWJEu8IrZVlda6N0uHwzZrUM1il7NC9Mlp4MaJYbYd9JSg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-wrap-function": {
+      "version": "7.28.3",
+      "resolved": "https://registry.npmjs.org/@babel/helper-wrap-function/-/helper-wrap-function-7.28.3.tgz",
+      "integrity": "sha512-zdf983tNfLZFletc0RRXYrHrucBEg95NIFMkn6K9dbeMYnsgHaSBGcQqdsCSStG2PYwRre0Qc2NNSCXbG+xc6g==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/template": "^7.27.2",
+        "@babel/traverse": "^7.28.3",
+        "@babel/types": "^7.28.2"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helpers": {
+      "version": "7.28.4",
+      "resolved": "https://registry.npmjs.org/@babel/helpers/-/helpers-7.28.4.tgz",
+      "integrity": "sha512-HFN59MmQXGHVyYadKLVumYsA9dBFun/ldYxipEjzA4196jpLZd8UjEEBLkbEkvfYreDqJhZxYAWFPtrfhNpj4w==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/template": "^7.27.2",
+        "@babel/types": "^7.28.4"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/parser": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/parser/-/parser-7.28.5.tgz",
+      "integrity": "sha512-KKBU1VGYR7ORr3At5HAtUQ+TV3SzRCXmA/8OdDZiLDBIZxVyzXuztPjfLd3BV1PRAQGCMWWSHYhL0F8d5uHBDQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/types": "^7.28.5"
+      },
+      "bin": {
+        "parser": "bin/babel-parser.js"
+      },
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-bugfix-firefox-class-in-computed-class-key": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-bugfix-firefox-class-in-computed-class-key/-/plugin-bugfix-firefox-class-in-computed-class-key-7.28.5.tgz",
+      "integrity": "sha512-87GDMS3tsmMSi/3bWOte1UblL+YUTFMV8SZPZ2eSEL17s74Cw/l63rR6NmGVKMYW2GYi85nE+/d6Hw5N0bEk2Q==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/traverse": "^7.28.5"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-bugfix-safari-class-field-initializer-scope": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-bugfix-safari-class-field-initializer-scope/-/plugin-bugfix-safari-class-field-initializer-scope-7.27.1.tgz",
+      "integrity": "sha512-qNeq3bCKnGgLkEXUuFry6dPlGfCdQNZbn7yUAPCInwAJHMU7THJfrBSozkcWq5sNM6RcF3S8XyQL2A52KNR9IA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression/-/plugin-bugfix-safari-id-destructuring-collision-in-function-expression-7.27.1.tgz",
+      "integrity": "sha512-g4L7OYun04N1WyqMNjldFwlfPCLVkgB54A/YCXICZYBsvJJE3kByKv9c9+R/nAfmIfjl2rKYLNyMHboYbZaWaA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining/-/plugin-bugfix-v8-spread-parameters-in-optional-chaining-7.27.1.tgz",
+      "integrity": "sha512-oO02gcONcD5O1iTLi/6frMJBIwWEHceWGSGqrpCmEL8nogiS6J9PBlE48CaK20/Jx1LuRml9aDftLgdjXT8+Cw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-skip-transparent-expression-wrappers": "^7.27.1",
+        "@babel/plugin-transform-optional-chaining": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.13.0"
+      }
+    },
+    "node_modules/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly": {
+      "version": "7.28.3",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly/-/plugin-bugfix-v8-static-class-fields-redefine-readonly-7.28.3.tgz",
+      "integrity": "sha512-b6YTX108evsvE4YgWyQ921ZAFFQm3Bn+CA3+ZXlNVnPhx+UfsVURoPjfGAPCjBgrqo30yX/C2nZGX96DxvR9Iw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/traverse": "^7.28.3"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-proposal-private-property-in-object": {
+      "version": "7.21.0-placeholder-for-preset-env.2",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-proposal-private-property-in-object/-/plugin-proposal-private-property-in-object-7.21.0-placeholder-for-preset-env.2.tgz",
+      "integrity": "sha512-SOSkfJDddaM7mak6cPEpswyTRnuRltl429hMraQEglW+OkovnCzsiszTmsrlY//qLFjCpQDFRvjdm2wA5pPm9w==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-syntax-import-assertions": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-syntax-import-assertions/-/plugin-syntax-import-assertions-7.27.1.tgz",
+      "integrity": "sha512-UT/Jrhw57xg4ILHLFnzFpPDlMbcdEicaAtjPQpbj9wa8T4r5KVWCimHcL/460g8Ht0DMxDyjsLgiWSkVjnwPFg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-syntax-import-attributes": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-syntax-import-attributes/-/plugin-syntax-import-attributes-7.27.1.tgz",
+      "integrity": "sha512-oFT0FrKHgF53f4vOsZGi2Hh3I35PfSmVs4IBFLFj4dnafP+hIWDLg3VyKmUHfLoLHlyxY4C7DGtmHuJgn+IGww==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-syntax-unicode-sets-regex": {
+      "version": "7.18.6",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-syntax-unicode-sets-regex/-/plugin-syntax-unicode-sets-regex-7.18.6.tgz",
+      "integrity": "sha512-727YkEAPwSIQTv5im8QHz3upqp92JTWhidIC81Tdx4VJYIte/VndKf1qKrfnnhPLiPghStWfvC/iFaMCQu7Nqg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-create-regexp-features-plugin": "^7.18.6",
+        "@babel/helper-plugin-utils": "^7.18.6"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-arrow-functions": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-arrow-functions/-/plugin-transform-arrow-functions-7.27.1.tgz",
+      "integrity": "sha512-8Z4TGic6xW70FKThA5HYEKKyBpOOsucTOD1DjU3fZxDg+K3zBJcXMFnt/4yQiZnf5+MiOMSXQ9PaEK/Ilh1DeA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-async-generator-functions": {
+      "version": "7.28.0",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-async-generator-functions/-/plugin-transform-async-generator-functions-7.28.0.tgz",
+      "integrity": "sha512-BEOdvX4+M765icNPZeidyADIvQ1m1gmunXufXxvRESy/jNNyfovIqUyE7MVgGBjWktCoJlzvFA1To2O4ymIO3Q==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-remap-async-to-generator": "^7.27.1",
+        "@babel/traverse": "^7.28.0"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-async-to-generator": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-async-to-generator/-/plugin-transform-async-to-generator-7.27.1.tgz",
+      "integrity": "sha512-NREkZsZVJS4xmTr8qzE5y8AfIPqsdQfRuUiLRTEzb7Qii8iFWCyDKaUV2c0rCuh4ljDZ98ALHP/PetiBV2nddA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-module-imports": "^7.27.1",
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-remap-async-to-generator": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-block-scoped-functions": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-block-scoped-functions/-/plugin-transform-block-scoped-functions-7.27.1.tgz",
+      "integrity": "sha512-cnqkuOtZLapWYZUYM5rVIdv1nXYuFVIltZ6ZJ7nIj585QsjKM5dhL2Fu/lICXZ1OyIAFc7Qy+bvDAtTXqGrlhg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-block-scoping": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-block-scoping/-/plugin-transform-block-scoping-7.28.5.tgz",
+      "integrity": "sha512-45DmULpySVvmq9Pj3X9B+62Xe+DJGov27QravQJU1LLcapR6/10i+gYVAucGGJpHBp5mYxIMK4nDAT/QDLr47g==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-class-properties": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-class-properties/-/plugin-transform-class-properties-7.27.1.tgz",
+      "integrity": "sha512-D0VcalChDMtuRvJIu3U/fwWjf8ZMykz5iZsg77Nuj821vCKI3zCyRLwRdWbsuJ/uRwZhZ002QtCqIkwC/ZkvbA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-create-class-features-plugin": "^7.27.1",
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-class-static-block": {
+      "version": "7.28.3",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-class-static-block/-/plugin-transform-class-static-block-7.28.3.tgz",
+      "integrity": "sha512-LtPXlBbRoc4Njl/oh1CeD/3jC+atytbnf/UqLoqTDcEYGUPj022+rvfkbDYieUrSj3CaV4yHDByPE+T2HwfsJg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-create-class-features-plugin": "^7.28.3",
+        "@babel/helper-plugin-utils": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.12.0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-classes": {
+      "version": "7.28.4",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-classes/-/plugin-transform-classes-7.28.4.tgz",
+      "integrity": "sha512-cFOlhIYPBv/iBoc+KS3M6et2XPtbT2HiCRfBXWtfpc9OAyostldxIf9YAYB6ypURBBbx+Qv6nyrLzASfJe+hBA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-annotate-as-pure": "^7.27.3",
+        "@babel/helper-compilation-targets": "^7.27.2",
+        "@babel/helper-globals": "^7.28.0",
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-replace-supers": "^7.27.1",
+        "@babel/traverse": "^7.28.4"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-computed-properties": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-computed-properties/-/plugin-transform-computed-properties-7.27.1.tgz",
+      "integrity": "sha512-lj9PGWvMTVksbWiDT2tW68zGS/cyo4AkZ/QTp0sQT0mjPopCmrSkzxeXkznjqBxzDI6TclZhOJbBmbBLjuOZUw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/template": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/@babel/plugin-transform-destructuring": {
+      "version": "7.28.5",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.28.5.tgz",
+      "integrity": "sha512-Kl9Bc6D0zTUcFUvkNuQh4eGXPKKNDOJQXVyyM4ZAQPMveniJdxi8XMJwLo+xSoW3MIq81bD33lcUe9kZpl0MCw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/traverse": "^7.28.5"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+```
+
+├─ package.json
+```json
+{
+  "name": "agw-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
+    "next": "16.0.3",
+    "next-pwa": "^5.6.0",
+    "next-themes": "^0.4.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5"
+  }
+}
+```
+
+├─ postcss.config.js
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+├─ proxy.ts
+```typescript
+import { NextResponse, NextRequest } from "next/server";
+
+export function proxy(request: NextRequest) {
+  const url = request.nextUrl;
+  const userSession = request.cookies.get("agw_session")?.value;
+  const adminSession = request.cookies.get("agw_admin_session")?.value;
+
+  // Protect /dashboard/*
+  if (url.pathname.startsWith("/dashboard")) {
+    if (!userSession) {
+      const redirect = url.clone();
+      redirect.pathname = "/login";
+      return NextResponse.redirect(redirect);
+    }
+  }
+
+  // Protect /admin/*
+  if (url.pathname.startsWith("/admin")) {
+    // Allow /admin/login
+    if (url.pathname.startsWith("/admin/login")) {
+      return NextResponse.next();
+    }
+
+    if (!adminSession) {
+      const redirect = url.clone();
+      redirect.pathname = "/admin/login";
+      return NextResponse.redirect(redirect);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/dashboard/:path*",
+    "/admin/:path*"
+  ],
+};
+```
+
+├─ public/manifest.json
+```json
+{
+    "name": "AGW - A Gold Winner",
+    "short_name": "AGW",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#FFD700",
+    "description": "AGW platform reward-based gamified system",
+    "icons": [
+      {
+        "src": "/icons/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  ```
+
+├─ public/sw.js
+```javascript
+self.addEventListener("install", (event) => {
+    event.waitUntil(
+      caches.open("agw-cache").then((cache) => {
+        return cache.addAll(["/"]);
+      })
+    );
+  });
+  
+  self.addEventListener("fetch", (event) => {
+    event.respondWith(
+      caches.match(event.request).then((resp) => {
+        return resp || fetch(event.request);
+      })
+    );
+  });
+  ```
+
+├─ tailwind.config.js
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+```
+
+├─ tsconfig.json
+```json
+{
+  "compilerOptions": {
+    
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ],
+      "@/app/*": [
+        "app/*"
+      ]
+    },
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+```
+
+├─ types/css.d.ts
+```typescript
+declare module "*.css";```
+
+├─ workers/api.js
+```javascript
+import { cors } from "./core/cors.js";
+import { json } from "./core/json.js";
+import { userRoutes } from "./routes/user.js";
+import { adminRoutes } from "./routes/admin.js";
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const method = request.method;
+
+    // Handle OPTIONS
+    if (method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: cors() });
+    }
+
+    // USER ROUTES
+    const u = await userRoutes(url, method, request, env);
+    if (u) return u;
+
+    // ADMIN ROUTES
+    const a = await adminRoutes(url, method, request, env);
+    if (a) return a;
+
+    return json({ ok: false, error: "NOT_FOUND" }, 404);
+  },
+};
+```
+
+├─ workers/core/cors.js
+```javascript
+export function cors(type = "application/json") {
+    return {
+      "Content-Type": type,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, x-admin-token"
+    };
+  }
+  ```
+
+├─ workers/core/json.js
+```javascript
+import { cors } from "./cors.js";
+
+export function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: cors("application/json"),
+  });
+}
+```
+
+├─ workers/routes/admin.js
+```javascript
+import { json } from "../core/json.js";
+import { getAdmin } from "../services/admin.js";
+import { verifyPassword } from "../utils/password.js";
+import { getUser, saveUser } from "../services/user.js";
+import { createSession, verifySession } from "../services/session.js";
+
+export async function adminRoutes(url, method, request, env) {
+
+  // ADMIN LOGIN
+  if (url.pathname === "/api/admin/login" && method === "POST") {
+    const { email, password } = await request.json();
+    const admin = await getAdmin(env, email);
+    if (!admin) return json({ ok: false, error: "ADMIN_NOT_FOUND" }, 404);
+
+    const ok = await verifyPassword(password, admin.password_hash, admin.password_salt);
+    if (!ok) return json({ ok: false, error: "WRONG_PASSWORD" }, 401);
+
+    const session = await createSession(env, admin.id, "admin");
+    return json({ ok: true, sessionId: session.sessionId });
+  }
+
+  // ADMIN ME
+  if (url.pathname === "/api/admin/me" && method === "POST") {
+    const { sessionId } = await request.json();
+    const session = await verifySession(env, sessionId);
+    return json({ ok: !!session });
+  }
+
+  // OVERVIEW
+  if (url.pathname === "/api/admin/overview" && method === "POST") {
+    const { sessionId } = await request.json();
+    const session = await verifySession(env, sessionId);
+    if (!session) return json({ ok: false, error: "UNAUTHORIZED" }, 403);
+
+    const { keys } = await env.AGW_USERS.list({ prefix: "user:" });
+
+    let totalUsers = 0;
+    let activeSubs = 0;
+
+    for (const k of keys) {
+      const raw = await env.AGW_USERS.get(k.name);
+      if (!raw) continue;
+
+      try {
+        const user = JSON.parse(raw);
+        if (user.id) totalUsers++;
+        if (user.subscription?.type) activeSubs++;
+      } catch {}
+    }
+
+    return json({ ok: true, totalUsers, activeSubs });
+  }
+
+  // USERS LIST
+  if (url.pathname === "/api/admin/users/list" && method === "GET") {
+    const sessionId = url.searchParams.get("sessionId");
+    const session = await verifySession(env, sessionId);
+    if (!session) return json({ ok: false, error: "UNAUTHORIZED" }, 403);
+
+    const { keys } = await env.AGW_USERS.list({ prefix: "user:" });
+    const users = [];
+
+    for (const k of keys) {
+      const raw = await env.AGW_USERS.get(k.name);
+      if (!raw) continue;
+
+      try {
+        const user = JSON.parse(raw);
+        users.push(user);
+      } catch {}
+    }
+
+    return json({ ok: true, users });
+  }
+
+  // USER UPDATE
+  if (url.pathname === "/api/admin/user/update" && method === "POST") {
+    const { sessionId, id, field, value } = await request.json();
+    const session = await verifySession(env, sessionId);
+    if (!session) return json({ ok: false, error: "UNAUTHORIZED" }, 403);
+
+    const user = await getUser(env, id);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+
+    if (field === "delete") {
+      await env.AGW_USERS.delete(`user:${id}`);
+      return json({ ok: true, deleted: true });
+    }
+
+    user[field] = value;
+    await saveUser(env, id, user);
+    return json({ ok: true, user });
+  }
+
+  // USER SAVE (ADMIN)
+  if (url.pathname === "/api/admin/user/save" && method === "POST") {
+    const { sessionId, user } = await request.json();
+    const session = await verifySession(env, sessionId);
+    if (!session || session.role !== "admin") {
+      return json({ ok: false, error: "UNAUTHORIZED" }, 403);
+    }
+
+    await saveUser(env, user.id, user);
+    return json({ ok: true });
+  }
+
+  return null;
+}
+```
+
+├─ workers/routes/user.js
+```javascript
+import { json } from "../core/json.js";
+import { getUser, saveUser, findUserByEmail } from "../services/user.js";
+import { createSession, verifySession, deleteSession } from "../services/session.js";
+import { hashPassword, verifyPassword } from "../utils/password.js";
+
+export async function userRoutes(url, method, request, env) {
+
+  // LOGIN
+  if (url.pathname === "/api/user/login" && method === "POST") {
+    const { email, password } = await request.json();
+    const user = await findUserByEmail(env, email);
+    if (!user) return json({ ok: false, error: "EMAIL_NOT_FOUND" }, 404);
+
+    const ok = await verifyPassword(password, user.password_hash, user.password_salt);
+    if (!ok) return json({ ok: false, error: "WRONG_PASSWORD" }, 401);
+
+    const session = await createSession(env, user.id, "user");
+    return json({ ok: true, sessionId: session.sessionId });
+  }
+
+  // REGISTER
+  if (url.pathname === "/api/user/register" && method === "POST") {
+    const { email, password, firstname, lastname } = await request.json();
+
+    const exists = await findUserByEmail(env, email);
+    if (exists) return json({ ok: false, error: "EMAIL_EXISTS" }, 409);
+
+    const id = crypto.randomUUID();
+    const { hash, salt } = await hashPassword(password);
+
+    const user = {
+      id,
+      email,
+      firstname,
+      lastname,
+      mailing: { primary: email },
+      password_hash: hash,
+      password_salt: salt,
+      status: { suspended: false, createdAt: Date.now() },
+      stats: {},
+    };
+
+    await saveUser(env, id, user);
+    return json({ ok: true });
+  }
+
+  // GET USER
+  if (url.pathname === "/api/user/get" && method === "POST") {
+    const { userId } = await request.json();
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+    return json({ ok: true, user });
+  }
+
+  // UPDATE PROFILE
+  if (url.pathname === "/api/user/update-profile" && method === "POST") {
+    const { userId, data } = await request.json();
+
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+
+    Object.assign(user, data);
+    await saveUser(env, userId, user);
+    return json({ ok: true, user });
+  }
+
+  // UPDATE PASSWORD
+  if (url.pathname === "/api/user/update-password" && method === "POST") {
+    const { userId, oldPassword, newPassword } = await request.json();
+
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+
+    const ok = await verifyPassword(oldPassword, user.password_hash, user.password_salt);
+    if (!ok) return json({ ok: false, error: "WRONG_OLD_PASSWORD" }, 403);
+
+    const { hash, salt } = await hashPassword(newPassword);
+    user.password_hash = hash;
+    user.password_salt = salt;
+
+    await saveUser(env, userId, user);
+    return json({ ok: true });
+  }
+
+  // DELETE ACCOUNT
+  if (url.pathname === "/api/user/delete-account" && method === "POST") {
+    const { userId } = await request.json();
+    await env.AGW_USERS.delete(`user:${userId}`);
+    return json({ ok: true });
+  }
+
+  // UPDATE EMAIL PREFS
+  if (url.pathname === "/api/user/update-email-prefs" && method === "POST") {
+    const { userId, prefs } = await request.json();
+
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+
+    user.mailing = user.mailing || {};
+    user.mailing.preferences = { ...(user.mailing.preferences || {}), ...prefs };
+
+    await saveUser(env, userId, user);
+    return json({ ok: true, user });
+  }
+
+  // UPDATE AVATAR
+  if (url.pathname === "/api/user/update-avatar" && method === "POST") {
+    const { userId, avatarBase64 } = await request.json();
+
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" }, 404);
+
+    user.profile_image = avatarBase64;
+
+    await saveUser(env, userId, user);
+    return json({ ok: true, user });
+  }
+
+  // REQUEST PASSWORD RESET
+  if (url.pathname === "/api/user/request-reset" && method === "POST") {
+    const { email } = await request.json();
+
+    const user = await findUserByEmail(env, email);
+    if (!user) return json({ ok: true }); // non rivelare
+
+    const token = crypto.randomUUID();
+    user.resetToken = token;
+    user.resetTokenExp = Date.now() + 1000 * 60 * 10; // 10 min
+
+    await saveUser(env, user.id, user);
+    return json({ ok: true, token });
+  }
+
+  // DO RESET
+  if (url.pathname === "/api/user/do-reset" && method === "POST") {
+    const { token, newPassword } = await request.json();
+
+    const { keys } = await env.AGW_USERS.list({ prefix: "user:" });
+
+    for (const k of keys) {
+      const raw = await env.AGW_USERS.get(k.name);
+      if (!raw) continue;
+
+      const user = JSON.parse(raw);
+
+      if (user.resetToken === token && Date.now() < user.resetTokenExp) {
+        const { hash, salt } = await hashPassword(newPassword);
+        user.password_hash = hash;
+        user.password_salt = salt;
+
+        delete user.resetToken;
+        delete user.resetTokenExp;
+
+        await saveUser(env, user.id, user);
+        return json({ ok: true });
+      }
+    }
+
+    return json({ ok: false, error: "INVALID_OR_EXPIRED_TOKEN" }, 400);
+  }
+
+  // LOGOUT
+  if (url.pathname === "/api/user/logout" && method === "POST") {
+    const { sessionId } = await request.json();
+    await deleteSession(env, sessionId);
+    return json({ ok: true });
+  }
+
+  // CHANGE PASSWORD
+  if (url.pathname === "/api/user/change-password" && method === "POST") {
+    const { userId, oldPassword, newPassword } = await request.json();
+
+    const user = await getUser(env, userId);
+    if (!user) return json({ ok: false, error: "USER_NOT_FOUND" });
+
+    const ok = await verifyPassword(oldPassword, user.password_hash, user.password_salt);
+    if (!ok) return json({ ok: false, error: "WRONG_OLD_PASSWORD" }, 403);
+
+    const { hash, salt } = await hashPassword(newPassword);
+    user.password_hash = hash;
+    user.password_salt = salt;
+
+    await saveUser(env, userId, user);
+    return json({ ok: true });
+  }
+
+  return null;
+}
+```
+
+├─ workers/services/admin.js
+```javascript
+import { hashPassword, verifyPassword } from "../utils/password.js";
+
+/**
+ * Normalizza l'email per ricerca e matching
+ */
+function normalize(value) {
+  return (value || "").trim().toLowerCase();
+}
+
+/**
+ * Recupera un admin tramite email
+ * (BFF usa solo email + password)
+ */
+export async function getAdmin(env, email) {
+  const target = normalize(email);
+
+  const { keys } = await env.AGW_ADMIN.list({ prefix: "admin:" });
+
+  for (const k of keys) {
+    if (!k.name.startsWith("admin:")) continue;
+
+    const raw = await env.AGW_ADMIN.get(k.name);
+    if (!raw) continue;
+
+    let admin;
+    try {
+      admin = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+
+    if (normalize(admin.email) === target) {
+      return admin;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Salva/aggiorna un admin in KV
+ */
+export async function saveAdmin(env, id, admin) {
+  await env.AGW_ADMIN.put(`admin:${id}`, JSON.stringify(admin));
+}
+
+/**
+ * Crea un nuovo admin
+ * (serve in onboarding del sistema)
+ */
+export async function createAdmin(env, email, password) {
+  const id = crypto.randomUUID();
+  const normEmail = normalize(email);
+
+  const { hash, salt } = await hashPassword(password);
+
+  const admin = {
+    id,
+    email: normEmail,
+    password_hash: hash,
+    password_salt: salt,
+    role: "admin",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+
+  await saveAdmin(env, id, admin);
+
+  return admin;
+}
+
+/**
+ * Verifica login admin → ritorna admin se password corretta
+ */
+export async function authenticateAdmin(env, email, password) {
+  const admin = await getAdmin(env, email);
+  if (!admin) return null;
+
+  const ok = await verifyPassword(password, admin.password_hash, admin.password_salt);
+  if (!ok) return null;
+
+  return admin;
+}
+```
+
+├─ workers/services/session.js
+```javascript
+// Unified session system
+
+export async function createSession(env, userId, role = "user") {
+    const sessionId = crypto.randomUUID();
+    const session = {
+      sessionId,
+      userId,
+      role,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
+    };
+  
+    await env.AGW_SESSIONS.put(`sess:${sessionId}`, JSON.stringify(session));
+    return session;
+  }
+  
+  export async function verifySession(env, sessionId) {
+    if (!sessionId) return null;
+    const raw = await env.AGW_SESSIONS.get(`sess:${sessionId}`);
+    if (!raw) return null;
+  
+    const session = JSON.parse(raw);
+  
+    if (session.expiresAt < Date.now()) {
+      await env.AGW_SESSIONS.delete(`sess:${sessionId}`);
+      return null;
+    }
+  
+    return session;
+  }
+  
+  export async function deleteSession(env, sessionId) {
+    await env.AGW_SESSIONS.delete(`sess:${sessionId}`);
+  }
+  ```
+
+├─ workers/services/user.js
+```javascript
+export async function saveUser(env, id, user) {
+    await env.AGW_USERS.put(`user:${id}`, JSON.stringify(user));
+  }
+  
+  export async function getUser(env, id) {
+    const raw = await env.AGW_USERS.get(`user:${id}`);
+    return raw ? JSON.parse(raw) : null;
+  }
+  
+  export async function findUserByEmail(env, email) {
+    const norm = (v) => (v || "").trim().toLowerCase();
+    const target = norm(email);
+    if (!target) return null;
+  
+    const { keys } = await env.AGW_USERS.list({ prefix: "user:" });
+  
+    for (const k of keys) {
+      if (k.name === "user:index") continue;
+      const raw = await env.AGW_USERS.get(k.name);
+      if (!raw) continue;
+  
+      let user;
+      try {
+        user = JSON.parse(raw);
+      } catch {
+        continue;
+      }
+  
+      if (norm(user.email) === target || norm(user.mailing?.primary) === target) {
+        return user;
+      }
+    }
+  
+    return null;
+  }
+  ```
+
+├─ workers/utils/password.js
+```javascript
+// PBKDF2 password hashing compatible with Cloudflare Workers
+
+export async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+
+  const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+  );
+
+  const key = await crypto.subtle.deriveKey(
+      {
+          name: "PBKDF2",
+          salt,
+          iterations: 100000,      // Cloudflare MAX
+          hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
+  );
+
+  const rawKey = new Uint8Array(await crypto.subtle.exportKey("raw", key));
+
+  return {
+      hash: btoa(String.fromCharCode(...rawKey)),
+      salt: btoa(String.fromCharCode(...salt)),
+  };
+}
+
+export async function verifyPassword(password, hash, salt) {
+  const encoder = new TextEncoder();
+  const saltBytes = Uint8Array.from(atob(salt), c => c.charCodeAt(0));
+  const hashBytes = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+
+  const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+  );
+
+  const key = await crypto.subtle.deriveKey(
+      {
+          name: "PBKDF2",
+          salt: saltBytes,
+          iterations: 100000,      // Cloudflare MAX
+          hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
+  );
+
+  const rawKey = new Uint8Array(await crypto.subtle.exportKey("raw", key));
+
+  return rawKey.every((b, i) => b === hashBytes[i]);
+}
+```
+
+francescomaggi@MacBook-Pro agw-app % 

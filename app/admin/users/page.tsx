@@ -18,9 +18,6 @@ function AdminUsers() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // =============================
-  // LOAD USERS — NO TOKEN
-  // =============================
   async function loadUserList() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`, {
       method: "GET",
@@ -45,7 +42,7 @@ function AdminUsers() {
     setLoading(true);
     setMsg("");
 
-    const res = await fetch(`/admin/api/user/get`, {
+    const res = await fetch(`/api/admin/user/get`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: searchId })
@@ -68,7 +65,7 @@ function AdminUsers() {
 
       <button
         onClick={async () => {
-          const res = await fetch(`/admin/api/user/create`, {
+          const res = await fetch(`/api/admin/user/create`, {
             method: "POST"
           });
 

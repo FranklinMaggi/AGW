@@ -12,7 +12,7 @@ export default function EmailPreferences({
   const [state, setState] = useState(prefs);
 
   async function savePrefs() {
-    const res = await fetch("/admin/user/update-email-prefs", {
+    const res = await fetch("/api/user/update-email-prefs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, prefs: state }),

@@ -5,23 +5,34 @@ import { useState } from "react";
 export default function SecurityPanel() {
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
-
+    
   async function changePassword() {
-    const res = await fetch("/api/user/change-password", {
+    const me = await fetch("/api/user/get", { method: "POST" }).then(r => r.json());
+    if (!me.ok) {
+      alert("Sessione non valida");
+      return;
+    }
+  
+    const userId = me.user.id;
+  
+    const res = await fetch("/api/user/update-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
-
+      body: JSON.stringify({
+        userId,
+        oldPassword: oldPass,
+        newPassword: newPass
+      })
     });
-
+  
     if (!res.ok) {
       alert("Errore nel cambio password");
       return;
     }
-
+  
     alert("Password aggiornata");
   }
-
+  
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
       <h2 className="text-xl font-bold mb-4">Sicurezza</h2>

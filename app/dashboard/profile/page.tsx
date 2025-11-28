@@ -18,7 +18,8 @@ export default async function ProfilePage() {
     cache: "no-store",
   });
 
-  const user = await res.json();
+  const data = await res.json();
+const user = data.user;
 
   return (
     <div className="flex flex-col gap-8 p-6">

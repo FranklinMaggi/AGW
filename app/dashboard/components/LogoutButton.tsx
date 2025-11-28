@@ -2,7 +2,7 @@
 
 export default function LogoutButton() {
   async function logout() {
-    await fetch("/auth/logout", { method: "POST" });
+    await fetch("/api/user/logout", { method: "POST" })
     window.location.href = "/login";
   }
 

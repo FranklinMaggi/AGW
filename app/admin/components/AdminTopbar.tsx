@@ -3,16 +3,15 @@
 import { ShieldCheck, Wifi, Database, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function AdminTopbar({ token }: { token: string | null }) {
+export default function AdminTopbar() {
   const router = useRouter();
 
   function logout() {
-    router.push("/admin?token=invalid");
+    router.push("/admin/logout");
   }
 
   return (
     <header className="admin-topbar w-full px-6 py-4 flex justify-between items-center shadow-sm">
-
       {/* LEFT */}
       <div className="flex items-center gap-3">
         <ShieldCheck size={20} className="text-[hsl(var(--agw-gold))]" />
@@ -27,7 +26,6 @@ export default function AdminTopbar({ token }: { token: string | null }) {
 
       {/* RIGHT */}
       <div className="flex items-center gap-6">
-
         <div className="flex items-center gap-1 text-neutral-400 text-sm">
           <Wifi size={16} className="text-green-400" />
           Online
@@ -45,9 +43,7 @@ export default function AdminTopbar({ token }: { token: string | null }) {
           <LogOut size={16} />
           Logout
         </button>
-
       </div>
-
     </header>
   );
 }

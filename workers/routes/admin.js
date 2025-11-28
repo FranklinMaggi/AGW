@@ -1,6 +1,6 @@
 import { json } from "../core/json.js";
 import { getAdmin } from "../services/admin.js";
-import { verifyPassword } from "../utils/password.js";
+import { hashPassword, verifyPassword } from "../utils/password.js";
 import { getUser, saveUser } from "../services/user.js";
 import { createSession, verifySession } from "../services/session.js";
 
@@ -103,6 +103,34 @@ export async function adminRoutes(url, method, request, env) {
     await saveUser(env, user.id, user);
     return json({ ok: true });
   }
+  // ADMIN BOOTSTRAP (crea superadmin una sola volta)
+if (url.pathname === "/api/admin/bootstrap" && method === "POST") {
+  const { token, email, password } = await request.json();
 
+  // protezione semplice
+  if (token !== env.ADMIN_TOKEN) {
+    return json({ ok: false, error: "FORBIDDEN" }, 403);
+  }
+
+  const existing = await getAdmin(env, email);
+  if (existing) {
+    return json({ ok: false, error: "ADMIN_ALREADY_EXISTS" }, 409);
+  }
+
+  const { hash, salt } = await hashPassword(password);
+
+  const admin = {
+    id: crypto.randomUUID(),
+    email,
+    password_hash: hash,
+    password_salt: salt,
+    role: "admin",
+    createdAt: Date.now()
+  };
+
+  await env.AGW_ADMIN.put(`admin:${admin.id}`, JSON.stringify(admin));
+
+  return json({ ok: true, admin });
+}
   return null;
 }

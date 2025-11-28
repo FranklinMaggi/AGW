@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user/login`, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -37,9 +37,9 @@ try {
     }
 
     // LOGIN OK → Imposta cookie di sessione
-    const res = NextResponse.json({ ok: true, user: data.user });
+    const res = NextResponse.json({ ok: true});
 
-    res.cookies.set("agw_session", data.user.id, {
+    res.cookies.set("agw_session", data.sessionId, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

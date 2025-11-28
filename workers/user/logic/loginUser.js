@@ -1,51 +1,35 @@
 import { findUserByEmail } from "../repo/findUserByEmail.js";
-import { normalizeUserProfile } from "../model/normalizeUser.js";
+import { verifyPassword } from "../../security/verifyPassword.js";
+import { createSession } from "../../sessions/createSession.js";
+import { json } from "../../core/response.js";
 
 export async function loginUser(env, body) {
   const { email, password } = body;
 
-  if (!email || !password) {
-    return {
-      ok: false,
-      status: 400,
-      error: "Missing email or password"
-    };
-  }
+  if (!email || !password)
+    return json({ ok: false, error: "Missing credentials" }, 400);
 
   const user = await findUserByEmail(env, email);
+  if (!user)
+    return json({ ok: false, error: "EMAIL_NOT_FOUND" }, 404);
 
-  if (!user) {
-    // 404 → Next /auth/login lo traduce in EMAIL_NOT_FOUND
-    return {
-      ok: false,
-      status: 404,
-      error: "EMAIL_NOT_FOUND"
-    };
-  }
+  const match = await verifyPassword(password, user.password_hash, user.password_salt);
+  if (!match)
+    return json({ ok: false, error: "WRONG_PASSWORD" }, 401);
 
-  if (user.password !== password) {
-    // 401 → Next /auth/login lo traduce in WRONG_PASSWORD
-    return {
-      ok: false,
-      status: 401,
-      error: "WRONG_PASSWORD"
-    };
-  }
+  if (user.status?.suspended)
+    return json({ ok: false, error: "ACCOUNT_SUSPENDED" }, 403);
 
-  if (user.status?.suspended) {
-    return {
-      ok: false,
-      status: 403,
-      error: "ACCOUNT_SUSPENDED"
-    };
-  }
+  const sessionId = await createSession(env, user.id, "user");
 
-  const safeUser = normalizeUserProfile(user);
-  delete safeUser.password;
-
-  return {
+  return json({
     ok: true,
-    status: 200,
-    user: safeUser
-  };
+    sessionId,
+    user: {
+      id: user.id,
+      email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname
+    }
+  });
 }

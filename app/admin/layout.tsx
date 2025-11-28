@@ -1,17 +1,18 @@
+"use client";
+
 import type { ReactNode } from "react";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminTopbar from "./components/AdminTopbar";
+
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default async function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="admin-theme min-h-screen flex">
-      {/* Sidebar */}
       <AdminSidebar />
 
-      {/* Content area */}
       <div className="flex flex-col flex-1 min-h-screen">
         <AdminTopbar />
 

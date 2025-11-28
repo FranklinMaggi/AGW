@@ -13,8 +13,6 @@ export default function AnalyticsWrapper() {
 }
 
 function AnalyticsPage() {
-  // Anche se non lo usi, serve per evitare hydration mismatch
-  const params = useSearchParams();
 
   return (
     <div className="space-y-6">

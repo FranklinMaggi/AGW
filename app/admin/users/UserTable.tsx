@@ -23,10 +23,10 @@ export default function UserTable({ users }: { users: any[] }) {
     if (!confirm(`Eliminare ${selected.length} utenti?`)) return;
 
     for (const id of selected) {
-      await fetch(`/admin/api/user/delete`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id, field: "delete" })
       });
     }
 
@@ -52,7 +52,6 @@ export default function UserTable({ users }: { users: any[] }) {
         </button>
       )}
 
-      {/* TABELLA */}
       <div className="overflow-auto">
         <table className="min-w-full text-sm text-left border-collapse">
           <thead>
@@ -93,11 +92,17 @@ export default function UserTable({ users }: { users: any[] }) {
                     onClick={async () => {
                       if (!confirm(`Eliminare ${user.email}?`)) return;
 
-                      await fetch(`/admin/api/user/delete`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id: user.id })
-                      });
+                      await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            id: user.id,
+                            field: "delete"
+                          })
+                        }
+                      );
 
                       alert("Utente eliminato");
                       window.location.reload();

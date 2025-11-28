@@ -22,7 +22,7 @@ function AdminUsers() {
   // LOAD USERS — NO TOKEN
   // =============================
   async function loadUserList() {
-    const res = await fetch(`/admin/api/users/list`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`, {
       method: "GET",
       cache: "no-store"
     });

@@ -1,31 +1,34 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function AdminHome() {
-  const params = useSearchParams();
-  const token = params.get("token");
-
   const [valid, setValid] = useState<boolean | null>(null);
   const [overview, setOverview] = useState<any>(null);
 
+  // Recupera sessione admin dal browser
+  const sessionId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("agw_admin_session")
+      : null;
+
   async function validate() {
-    if (!token) {
+    if (!sessionId) {
       setValid(false);
       return;
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/me`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ sessionId })
     });
 
     const data = await res.json();
-    setValid(data.valid === true);
 
-    if (data.valid) {
+    setValid(data.ok === true);
+
+    if (data.ok) {
       await loadOverview();
     }
   }
@@ -34,7 +37,7 @@ export default function AdminHome() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/overview`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ sessionId })
     });
 
     const data = await res.json();

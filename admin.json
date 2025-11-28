@@ -1,0 +1,9 @@
+{
+    "id": "admin-info",
+    "email": "info@webonday.it",
+    "password_hash": "pPk4vvHoYf8YJpWCivOi6Yjdm1DO5XxA48UkUmq/T50=",
+    "password_salt": "cJSplbvtj7geFqCTQ9IzTg==",
+    "role": "admin",
+    "createdAt": 1732795600
+  }
+  

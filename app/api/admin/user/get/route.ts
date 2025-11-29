@@ -1,27 +1,19 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-
+import { proxyAdmin } from "../../_utils";
 export async function POST(req: Request) {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get("agw_admin_session")?.value;
-
-  if (!sessionId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-
   const { id } = await req.json();
 
-  const backend = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/list`,
-    { method: "GET" }
-  );
+  const result = await proxyAdmin("/api/admin/users/list", {}, "GET");
 
-  const data = await backend.json();
+  if (!result.ok) {
+    return NextResponse.json(result.json, { status: result.status });
+  }
 
-  if (!data.ok) return NextResponse.json(data, { status: backend.status });
+  const user = result.json.users.find((u: any) => u.id === id);
 
-  const user = data.users.find((u: any) => u.id === id);
-
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
 
   return NextResponse.json(user);
 }

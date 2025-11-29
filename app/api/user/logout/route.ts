@@ -6,11 +6,12 @@ export async function POST() {
 
   cookieStore.set("agw_session", "", {
     httpOnly: true,
-    secure: true,
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     path: "/",
     expires: new Date(0),
   });
+  
 
   return NextResponse.json({ ok: true });
 }

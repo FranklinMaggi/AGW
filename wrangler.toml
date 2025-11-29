@@ -5,44 +5,32 @@ name = "agw"
 main = "workers/api.js"
 compatibility_date = "2024-11-22"
 
-# Custom domain WITHOUT wildcards. 
-# Cloudflare instrada TUTTE le path automaticamente.
-routes = [
-  { pattern = "agw-api.webonday.it", custom_domain = true }
-]
-
 ####################################
-# SHARED KV + VARS
+# PROD (default)
 ####################################
 [[kv_namespaces]]
 binding = "AGW_USERS"
-id = "532cf4782eb64b129f9493c787939222"
-preview_id = "499129c872bb4654a337592974e0da56"
+id = "3725586272cd410f90ba2edbabe4e398"   # ✔ PROD
 
 [[kv_namespaces]]
 binding = "AGW_SESSIONS"
-id = "6f35dfdab9974b5a977bdc05f2ca1243"
-preview_id = "38d02e81e4d047988b534a7785aa5e8b"
+id = "6f35dfdab9974b5a977bdc05f2ca1243"   # ✔ PROD
 
 [[kv_namespaces]]
 binding = "AGW_ADMIN"
-id = "95d60959cc3c45d189e049b30ee77593"
-preview_id = "c2c967feff0646168df214ceec8747eb"
+id = "95d60959cc3c45d189e049b30ee77593"   # ✔ PROD
 
 [vars]
 ADMIN_TOKEN = "agw-secret-admin-token"
-
 
 ####################################
 # ENV: PRODUCTION
 ####################################
 [env.production]
-name = "agw-production"
-compatibility_date = "2024-11-22"
 
 [[env.production.kv_namespaces]]
 binding = "AGW_USERS"
-id = "532cf4782eb64b129f9493c787939222"
+id = "3725586272cd410f90ba2edbabe4e398"
 
 [[env.production.kv_namespaces]]
 binding = "AGW_SESSIONS"
@@ -51,12 +39,6 @@ id = "6f35dfdab9974b5a977bdc05f2ca1243"
 [[env.production.kv_namespaces]]
 binding = "AGW_ADMIN"
 id = "95d60959cc3c45d189e049b30ee77593"
-
-[env.production.vars]
-ADMIN_TOKEN = "agw-secret-admin-token"
-PUBLIC_API_URL = "https://agw-api.webonday.it"
-PUBLIC_APP_URL = "https://agw.webonday.it"
-
 
 ####################################
 # ENV: DEV
@@ -65,15 +47,15 @@ PUBLIC_APP_URL = "https://agw.webonday.it"
 
 [[env.dev.kv_namespaces]]
 binding = "AGW_USERS"
-preview_id = "499129c872bb4654a337592974e0da56"
+id = "499129c872bb4654a337592974e0da56"   # ✔ DEV
 
 [[env.dev.kv_namespaces]]
 binding = "AGW_SESSIONS"
-preview_id = "38d02e81e4d047988b534a7785aa5e8b"
+id = "38d02e81e4d047988b534a7785aa5e8b"   # ✔ DEV
 
 [[env.dev.kv_namespaces]]
 binding = "AGW_ADMIN"
-preview_id = "c2c967feff0646168df214ceec8747eb"
+id = "c2c967feff0646168df214ceec8747eb"   # ✔ DEV
 
 [env.dev.vars]
 ADMIN_TOKEN = "agw-secret-admin-token"

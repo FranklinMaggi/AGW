@@ -1,21 +1,8 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { proxyAdmin } from "../_utils";
 
 export async function POST() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get("agw_admin_session")?.value;
+  const result = await proxyAdmin("/api/admin/me");
 
-  if (!sessionId)
-    return NextResponse.json({ ok: false });
-
-  const backend = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/me`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    }
-  );
-
-  return NextResponse.json(await backend.json());
+  return NextResponse.json(result.json, { status: result.status });
 }

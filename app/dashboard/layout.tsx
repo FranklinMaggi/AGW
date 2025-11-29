@@ -13,7 +13,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function load() {
-        const res = await fetch("/api/user/get", { method: "POST" });
+        const res = await fetch("/api/user/get", { method: "POST" ,  cache: "no-store"});
         const data = await res.json();
         if (!data.ok) window.location.href = "/login";
         setUser(data.user);

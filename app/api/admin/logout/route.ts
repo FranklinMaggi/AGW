@@ -6,7 +6,7 @@ export async function POST() {
 
   cookieStore.set("agw_admin_session", "", {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     expires: new Date(0),

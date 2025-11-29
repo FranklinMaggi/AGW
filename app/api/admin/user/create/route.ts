@@ -1,33 +1,18 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { proxyAdmin } from "../../_utils";
 
 export async function POST() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get("agw_admin_session")?.value;
-
-  if (!sessionId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-
   const id = crypto.randomUUID();
 
-  const backend = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/user/update`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        id,
-        field: "create",
-        value: {}
-      })
-    }
-  );
+  const result = await proxyAdmin("/api/admin/user/update", {
+    id,
+    field: "create",
+    value: {}
+  });
 
-  const data = await backend.json();
-
-  if (!data.ok)
-    return NextResponse.json(data, { status: backend.status });
+  if (!result.ok) {
+    return NextResponse.json(result.json, { status: result.status });
+  }
 
   return NextResponse.json({ ok: true, id });
 }

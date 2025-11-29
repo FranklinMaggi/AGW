@@ -3,14 +3,11 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   const body = await req.json();
 
-  const backend = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  );
+  const backend = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
   const data = await backend.json();
 
@@ -22,7 +19,7 @@ export async function POST(req: Request) {
 
   res.cookies.set("agw_admin_session", data.sessionId, {
     httpOnly: true,
-    secure: true,
+   secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
   });

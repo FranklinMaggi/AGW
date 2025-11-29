@@ -12,7 +12,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/login`, {
+    const res = await fetch("/api/user/login"
+      , {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -38,7 +39,9 @@ export default function LoginPage() {
 
     // LOGIN OK
     if (data.ok) {
-      window.location.href = "/dashboard";
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 80);
     }
   }
 
